@@ -1,5 +1,4 @@
-#ifndef C_LOG_H
-#define C_LOG_H
+#pragma once
 // C++ code guard
 #ifdef __cplusplus
 extern "C" {
@@ -9,8 +8,7 @@ typedef enum {
   LOG_LEVEL_DEBUG = 0,
   LOG_LEVEL_INFO,
   LOG_LEVEL_WARNING,
-  LOG_LEVEL_ERROR,
-  LOG_LEVEL_NONE
+  LOG_LEVEL_ERROR
 } log_level_t;
 
 extern void logSetLevel(log_level_t log_level);
@@ -66,7 +64,7 @@ extern void logPrint(log_level_t log_level, const char *file_name, int line,
 
 #define logError(...) logPrint(LOG_LEVEL_ERROR, __FILE__, __LINE__, __VA_ARGS__)
 
-#ifndef NO_LOGGER
+#ifndef BUILD_RELEASE
 
 #define logDebug(...) logPrint(LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
 #define logInfo(...) logPrint(LOG_LEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__)
@@ -82,10 +80,12 @@ extern void logPrint(log_level_t log_level, const char *file_name, int line,
 #define logInfo(...) NOTHING
 #define logWarning(...) NOTHING
 
-#endif // NO_LOGGER
+#endif // BUILD_RELEASE
+
+#define STRINGIZE(x) STRINGIZE2(x)
+#define STRINGIZE2(x) #x
+#define _REF_ __FILE__ ":" STRINGIZE(__LINE__) " "
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif // C_LOG_H

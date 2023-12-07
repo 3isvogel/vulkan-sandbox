@@ -1,5 +1,5 @@
-#include "lib/log.hpp"
 #include <app/app.hpp>
+#include <lib/log.hpp>
 
 #include <cstdlib>
 #include <iostream>
