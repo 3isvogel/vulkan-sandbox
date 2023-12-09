@@ -36,3 +36,4 @@ export MAKEFLAGS="-j $(sysctl -n hw.ncpu)"
 
 - [ ] [Enabling extensions](https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap50.html)
 - [ ] [Debug utils](https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap51.html)
+- [ ] [More advanced device selection](https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/00_Setup/03_Physical_devices_and_queue_families.html#_base_device_suitability_checks)
