@@ -85,6 +85,7 @@ extern void logPrint(log_level_t log_level, const char *file_name, int line,
 #define STRINGIZE(x) STRINGIZE2(x)
 #define STRINGIZE2(x) #x
 #define _REF_ __FILE__ ":" STRINGIZE(__LINE__) " "
+#define e_runtime(message) throw std::runtime_error(_REF_ message)
 
 #ifdef __cplusplus
 }

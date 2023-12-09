@@ -23,7 +23,9 @@ private:
   const char *name = "Vulkan app";
   GLFWwindow *window;
   VkInstance instance;
-  VkDebugUtilsMessengerEXT debugMessenger;
+  // VkDebugUtilsMessengerEXT debugMessenger;
+  VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+  VkDevice device;
 
 private:
   // Initialize window (this allow for displaying)
@@ -31,4 +33,9 @@ private:
   void initVulkan();
   void mainLoop();
   void cleanup();
+
+  // Vulkan setup
+  void createInstance();
+  void pickPhysicalDevice();
+  void createLogicalDevice();
 };
