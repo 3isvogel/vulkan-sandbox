@@ -19,7 +19,7 @@ LD = g++
 # C flags
 CFLAGS =
 # C++ flags
-CXXFLAGS = -std=c++11
+CXXFLAGS = -std=c++17
 # C/C++ flags
 CPPFLAGS = -O2
 # dependency-generation flags
@@ -37,7 +37,7 @@ SRC = src
 SHA = shaders
 # Additional dependencies on which rebuild objects
 # useful when changing stuff in the makefile to rebuild the project with new options
-OBJDEPS = # Makefile 
+OBJDEPS = Makefile 
 
 ################################################################################
 # Ideally you should not go under this line
@@ -50,10 +50,10 @@ LDFLAGS+=$(shell pkg-config --libs $(PKG))
 SOURCES := $(wildcard $(SRC)/*.c $(SRC)/**/*.c $(SRC)/*.cc $(SRC)/**/*.cc $(SRC)/*.cpp $(SRC)/**/*.cpp $(SRC)/*.cxx $(SRC)/**/*.cxx)
 
 OBJECTS := \
-	$(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(wildcard $(SRC)/**/*.c $(SRC)/*.c)) \
-	$(patsubst $(SRC)/%.cc, $(OBJ)/%.o, $(wildcard $(SRC)/**/*.cc $(SRC)/*.cc)) \
-	$(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(wildcard $(SRC)/**/*.cpp $(SRC)/*.cpp)) \
-	$(patsubst $(SRC)/%.cxx, $(OBJ)/%.o, $(wildcard $(SRC)/**/*.cxx $(SRC)/*.cxx))
+	$(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(shell find $(SRC) -name "*.c")) \
+	$(patsubst $(SRC)/%.cc, $(OBJ)/%.o, $(shell find $(SRC) -name "*.cc")) \
+	$(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(shell find $(SRC) -name "*.cpp")) \
+	$(patsubst $(SRC)/%.cxx, $(OBJ)/%.o, $(shell find $(SRC) -name "*.cxx"))
 
 SHADERS := \
 	$(patsubst $(SHA)/%.frag, $(SHA)/%Frag.spv, $(wildcard $(SHA)/*.frag)) \
