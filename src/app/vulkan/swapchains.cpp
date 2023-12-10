@@ -1,6 +1,10 @@
 #include <app/app.hpp>
 #include <app/vulkan/swapchains.hpp>
 #include <lib/log.hpp>
+#include <vector>
+
+void retrieveSwapChainImages(VkSwapchainKHR swapChain,
+                             std::vector<VkImage> &swapChainImages);
 
 SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device,
                                               VkSurfaceKHR surface) {
@@ -135,9 +139,44 @@ void MainApp::createSwapChain() {
 
   createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-  if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) !=
+  if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &(swapChain.chain)) !=
       VK_SUCCESS) {
     e_runtime("Failed to create swapchain");
   }
   logDebug("SwapChain: created");
+
+  vkGetSwapchainImagesKHR(device, swapChain.chain, &imageCount, nullptr);
+  swapChain.images.resize(imageCount);
+  vkGetSwapchainImagesKHR(device, swapChain.chain, &imageCount,
+                          swapChain.images.data());
+
+  swapChain.imageFormat = surfaceFormat.format;
+  swapChain.extent = extent;
+
+  logDebug("SwapChain info: retrieved");
+}
+
+void MainApp::createImageViews() {
+  swapChain.imageViews.resize(swapChain.images.size());
+  for (size_t i = 0; i < swapChain.images.size(); i++) {
+    VkImageViewCreateInfo createInfo{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .image = swapChain.images[i],
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .format = swapChain.imageFormat,
+        .components = {.r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                       .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                       .b = VK_COMPONENT_SWIZZLE_IDENTITY},
+        .subresourceRange = {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                             .baseMipLevel = 0,
+                             .levelCount = 1,
+                             .baseArrayLayer = 0,
+                             .layerCount = 1}};
+
+    if (vkCreateImageView(device, &createInfo, nullptr,
+                          &(swapChain.imageViews[i])) != VK_SUCCESS) {
+      e_runtime("Failed to create image view");
+    }
+  }
+  logDebug("Image views: created");
 }

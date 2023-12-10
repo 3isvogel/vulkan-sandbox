@@ -11,10 +11,10 @@ typedef enum {
   LOG_LEVEL_ERROR
 } log_level_t;
 
-extern void logSetLevel(log_level_t log_level);
-extern log_level_t logGetLevel();
-extern void logPrint(log_level_t log_level, const char *file_name, int line,
-                     const char *format, ...);
+void logSetLevel(log_level_t log_level);
+log_level_t logGetLevel();
+void logPrint(log_level_t log_level, const char *file_name, int line,
+              const char *format, ...);
 
 // apparently doing so is necessary to correctly connect strings
 #define STR2(x) #x

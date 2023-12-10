@@ -8,6 +8,4 @@ struct errorcode {
   const char *meaning;
 };
 
-extern struct errorcode ErrorCodes[26];
-
 const char *meanErrorCode(VkResult code);

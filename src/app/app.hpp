@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vulkan/vulkan_core.h"
+#include <vector>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <app/vulkan/queues.hpp>
@@ -28,7 +30,13 @@ private:
 #define X(name) VkQueue name##Queue;
   FAMILIES_LIST
 #undef X
-  VkSwapchainKHR swapChain;
+  struct SwapChain {
+    VkSwapchainKHR chain;
+    std::vector<VkImage> images;
+    VkFormat imageFormat;
+    VkExtent2D extent;
+    std::vector<VkImageView> imageViews;
+  } swapChain;
 
 private:
   // Initialize window (this allow for displaying)
@@ -43,4 +51,6 @@ private:
   void pickPhysicalDevice();
   void createLogicalDevice();
   void createSwapChain();
+  void createImageViews();
+  void createGraphicPipelines();
 };

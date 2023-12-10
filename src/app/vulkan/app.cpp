@@ -1,5 +1,6 @@
 #include <app/app.hpp>
-#include <app/vulkan/helper.hpp>
+#include <app/vulkan/instance.hpp>
+#include <app/vulkan/physical_devices.hpp>
 #include <app/vulkan/queues.hpp>
 #include <app/vulkan/validation/enable.hpp>
 #include <lib/log.hpp>
@@ -107,7 +108,7 @@ void MainApp::createLogicalDevice() {
       .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
       .pEnabledFeatures = &deviceFeatures};
 
-  enforceDeviceExtensionsRequirements(physicalDevice);
+  auto deviceExtensions = enforceDeviceExtensionsRequirements(physicalDevice);
   createInfo.enabledExtensionCount =
       static_cast<uint32_t>(deviceExtensions.size());
   createInfo.ppEnabledExtensionNames = deviceExtensions.data();

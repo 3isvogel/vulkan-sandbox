@@ -1,3 +1,4 @@
+#include "vulkan/vulkan_core.h"
 #include <app/app.hpp>
 #include <lib/log.hpp>
 
@@ -22,6 +23,7 @@ void MainApp::initVulkan() {
   pickPhysicalDevice();
   createLogicalDevice();
   createSwapChain();
+  createImageViews();
 }
 
 void MainApp::mainLoop() {
@@ -34,7 +36,10 @@ void MainApp::mainLoop() {
 }
 
 void MainApp::cleanup() {
-  vkDestroySwapchainKHR(device, swapChain, nullptr);
+  for (auto imageView : swapChain.imageViews)
+    vkDestroyImageView(device, imageView, nullptr);
+  logDebug("Image views: destroyed");
+  vkDestroySwapchainKHR(device, swapChain.chain, nullptr);
   logDebug("SwapChain: destroyed");
   vkDestroyDevice(device, nullptr);
   logDebug("Logical device: destroyed");

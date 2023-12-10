@@ -3,16 +3,11 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 
-extern const bool enableValidationLayers;
-extern const std::vector<const char *> validationLayers;
+void requireValidationLayerOnValidation(std::vector<const char *> &extensions);
+void enableValidationLayerOnValidation();
+void populateDebugMessengerOnValidation(VkInstanceCreateInfo &createInfo);
 
-extern void
-requireValidationLayerOnValidation(std::vector<const char *> &extensions);
-extern void enableValidationLayerOnValidation();
-extern void
-populateDebugMessengerOnValidation(VkInstanceCreateInfo &createInfo);
-
-extern void legacyPopulateDeviceSpecificValidationOnValidation(
+void legacyPopulateDeviceSpecificValidationOnValidation(
     VkDeviceCreateInfo &createInfo);
-extern void setupDebugMessengerOnValidation(VkInstance instance);
-extern void destroyDebugMessengerOnValidation(VkInstance instance);
+void setupDebugMessengerOnValidation(VkInstance instance);
+void destroyDebugMessengerOnValidation(VkInstance instance);
