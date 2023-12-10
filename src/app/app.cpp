@@ -1,4 +1,3 @@
-#include "vulkan/vulkan_core.h"
 #include <app/app.hpp>
 #include <lib/log.hpp>
 
@@ -24,6 +23,7 @@ void MainApp::initVulkan() {
   createLogicalDevice();
   createSwapChain();
   createImageViews();
+  createGraphicPipelines();
 }
 
 void MainApp::mainLoop() {
