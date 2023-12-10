@@ -1,5 +1,4 @@
 #include <lib/codes.hpp>
-#include <vulkan/vulkan_core.h>
 
 struct errorcode ErrorCodes[26] = {
     {VK_NOT_READY, "Not Ready"},
@@ -28,3 +27,12 @@ struct errorcode ErrorCodes[26] = {
     {VK_ERROR_INVALID_SHADER_NV, "Invalid Shader"},
     {VK_ERROR_OUT_OF_POOL_MEMORY_KHR, "Out of Pool Memory"},
     {VK_ERROR_INVALID_EXTERNAL_HANDLE, "Invalid External Handle"}};
+
+const char *meanErrorCode(VkResult code) {
+  for (auto c : ErrorCodes) {
+    if (code == c.resultCode) {
+      return c.meaning;
+    }
+  }
+  return "Unknown error";
+};

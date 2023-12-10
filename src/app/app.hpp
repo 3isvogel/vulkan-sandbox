@@ -2,6 +2,7 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <app/vulkan/queues.hpp>
 
 class MainApp {
 public:
@@ -20,9 +21,14 @@ private:
   const char *name = "Vulkan app";
   GLFWwindow *window;
   VkInstance instance;
+  VkSurfaceKHR surface;
   // VkDebugUtilsMessengerEXT debugMessenger;
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
   VkDevice device;
+#define X(name) VkQueue name##Queue;
+  FAMILIES_LIST
+#undef X
+  VkSwapchainKHR swapChain;
 
 private:
   // Initialize window (this allow for displaying)
@@ -33,6 +39,8 @@ private:
 
   // Vulkan setup
   void createInstance();
+  void createSurface();
   void pickPhysicalDevice();
   void createLogicalDevice();
+  void createSwapChain();
 };

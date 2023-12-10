@@ -1,6 +1,7 @@
 #pragma once
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 #include <lib/log.hpp>
-#include <vulkan/vulkan.h>
 
 #define CALLBACKPRINT(severity, callBackName)                                  \
   logPrint(severity, #callBackName, 0,                                         \

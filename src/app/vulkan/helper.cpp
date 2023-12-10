@@ -1,7 +1,15 @@
-#include "vulkan/vulkan_core.h"
 #include <app/vulkan/helper.hpp>
+#include <app/vulkan/swapchains.hpp>
 #include <app/vulkan/validation/enable.hpp>
 #include <lib/log.hpp>
+
+#define X(name) name,
+std::vector<const char *> deviceExtensions = {DEVICE_EXTENSIONS_LIST};
+#undef X
+
+std::vector<VkExtensionProperties>
+queryDeviceExtensionProperties(VkPhysicalDevice physicalDevice);
+bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 
 std::vector<const char *> getRequiredExtensions() {
   uint32_t glfwExtensionCount = 0;
@@ -21,6 +29,20 @@ std::vector<VkExtensionProperties> queryInstanceExtensionProperties() {
   vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount,
                                          extensions.data());
   return extensions;
+}
+
+bool requireExtensionIfAvailable(std::vector<const char *> &extensions,
+                                 const char *ext) {
+
+  auto availableExt = queryInstanceExtensionProperties();
+
+  for (const auto &extProp : availableExt) {
+    if (strcmp(ext, extProp.extensionName) == 0) {
+      extensions.emplace_back(ext);
+      return true;
+    }
+  }
+  return false;
 }
 
 void printExtensionSupport() {
@@ -46,45 +68,37 @@ void printPhysicalDeviceExtensionProperties(VkPhysicalDevice physicalDevice) {
 // https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/00_Setup/03_Physical_devices_and_queue_families.html#_base_device_suitability_checks
 // Can implement device sorting by suitability or manual selection
 
-bool isDeviceSuitable(VkPhysicalDevice physicalDevice) {
-  QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
-  return indices.isComplete();
-}
+bool isDeviceSuitable(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
+  QueueFamilyIndices indices = findQueueFamilies(physicalDevice, surface);
 
-float defaultQueuePriority = 1.0f;
-// To quickly check later that all properties in the struct have a value
-bool QueueFamilyIndices::isComplete() { return graphicsFamily.has_value(); }
+  bool extensionSupported = checkDeviceExtensionSupport(physicalDevice);
 
-std::vector<VkQueueFamilyProperties>
-queryQueueFamilies(VkPhysicalDevice device) {
-  uint32_t queueFamilyCount = 0;
-  vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-  std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-  vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount,
-                                           queueFamilies.data());
-  return queueFamilies;
-}
-
-QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
-  QueueFamilyIndices indices;
-
-  auto queueFamilies = queryQueueFamilies(device);
-
-  int i = 0;
-  for (const auto &queueFamily : queueFamilies) {
-    if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-      indices.graphicsFamily = i;
-    }
-    if (indices.isComplete()) {
-      break;
-    }
-    i++;
+  bool swapChainAdequate = false;
+  if (extensionSupported) {
+    SwapChainSupportDetails SwapChainSupport =
+        querySwapChainSupport(physicalDevice, surface);
+    swapChainAdequate = !SwapChainSupport.formats.empty() &&
+                        !SwapChainSupport.presentModes.empty();
   }
 
-  return indices;
+  return indices.isComplete() && extensionSupported && swapChainAdequate;
 }
 
-#include <string.h>
+#include <set>
+#include <string>
+
+bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
+  auto availableExtensions = queryDeviceExtensionProperties(device);
+
+  std::set<std::string> requiredExtensions(deviceExtensions.begin(),
+                                           deviceExtensions.end());
+
+  for (const auto &extension : availableExtensions) {
+    requiredExtensions.erase(extension.extensionName);
+  }
+
+  return requiredExtensions.empty();
+}
 
 std::vector<VkExtensionProperties>
 queryDeviceExtensionProperties(VkPhysicalDevice physicalDevice) {
@@ -98,20 +112,13 @@ queryDeviceExtensionProperties(VkPhysicalDevice physicalDevice) {
 }
 
 std::vector<const char *> enforcingExtensions = {"VK_KHR_portability_subset"};
-std::vector<const char *> deviceExtensionsRequired;
 
-void enforceDeviceExtensionsRequirements(VkDeviceCreateInfo &createInfo,
-                                         VkPhysicalDevice physicalDevice) {
+void enforceDeviceExtensionsRequirements(VkPhysicalDevice physicalDevice) {
 
   auto extensions = queryDeviceExtensionProperties(physicalDevice);
 
   for (const auto &extension : extensions)
     for (const auto &enforcingExtension : enforcingExtensions)
       if (strcmp(enforcingExtension, extension.extensionName) == 0)
-        deviceExtensionsRequired.emplace_back(enforcingExtension);
-
-  createInfo.enabledExtensionCount =
-      static_cast<uint32_t>(deviceExtensionsRequired.size());
-  if (createInfo.enabledExtensionCount != 0)
-    createInfo.ppEnabledExtensionNames = deviceExtensionsRequired.data();
+        deviceExtensions.emplace_back(enforcingExtension);
 }

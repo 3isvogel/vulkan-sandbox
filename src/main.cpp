@@ -1,8 +1,5 @@
 #include <app/app.hpp>
 #include <lib/log.hpp>
-
-#include <cstdlib>
-#include <iostream>
 #include <stdexcept>
 
 int main() {

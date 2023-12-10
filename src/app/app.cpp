@@ -9,16 +9,19 @@ void MainApp::initWindow() {
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
   window = glfwCreateWindow(width, height, name, nullptr, nullptr);
+  if (window == nullptr) {
+    e_runtime("Failed to create GLFW window");
+  }
   logDebug("GLFW window: created \"%s\" (%dx%d)", name, width, height);
 }
 
 void MainApp::initVulkan() {
   createInstance();
-  logDebug("Vulkan instance: created \"%s\"", name);
+  createSurface();
   pickPhysicalDevice();
   createLogicalDevice();
+  createSwapChain();
 }
 
 void MainApp::mainLoop() {
@@ -31,7 +34,12 @@ void MainApp::mainLoop() {
 }
 
 void MainApp::cleanup() {
+  vkDestroySwapchainKHR(device, swapChain, nullptr);
+  logDebug("SwapChain: destroyed");
   vkDestroyDevice(device, nullptr);
+  logDebug("Logical device: destroyed");
+  vkDestroySurfaceKHR(instance, surface, nullptr);
+  logDebug("GLFW surface: destroyed");
   vkDestroyInstance(instance, nullptr);
   logDebug("Vulkan instance: destroyed");
   glfwDestroyWindow(window);

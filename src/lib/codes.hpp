@@ -1,10 +1,13 @@
 #pragma once
 
-#include "vulkan/vulkan_core.h"
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 #include <string>
 struct errorcode {
   VkResult resultCode;
-  std::string meaning;
+  const char *meaning;
 };
 
 extern struct errorcode ErrorCodes[26];
+
+const char *meanErrorCode(VkResult code);

@@ -1,22 +1,19 @@
 #pragma once
 
-#include "vulkan/vulkan_core.h"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <app/vulkan/queues.hpp>
 #include <vector>
 
-struct QueueFamilyIndices {
-  std::optional<uint32_t> graphicsFamily;
-  bool isComplete();
-};
-
-extern float defaultQueuePriority;
+#define DEVICE_EXTENSIONS_LIST X(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
+extern std::vector<const char *> deviceExtensions;
 
 std::vector<const char *> getRequiredExtensions();
-QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-void printExtensionSupport();
-void printPhysicalDeviceExtensionProperties(VkPhysicalDevice physicalDevice);
-bool isDeviceSuitable(VkPhysicalDevice device);
 
-void enforceDeviceExtensionsRequirements(VkDeviceCreateInfo &createInfo,
-                                         VkPhysicalDevice physicalDevice);
+void printExtensionSupport();
+bool requireExtensionIfAvailable(std::vector<const char *> &extensions,
+                                 const char *ext);
+void printPhysicalDeviceExtensionProperties(VkPhysicalDevice physicalDevice);
+bool isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface);
+
+void enforceDeviceExtensionsRequirements(VkPhysicalDevice physicalDevice);

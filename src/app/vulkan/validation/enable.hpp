@@ -1,5 +1,7 @@
 #pragma once
-#include <vulkan/vulkan.hpp>
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+#include <vector>
 
 extern const bool enableValidationLayers;
 extern const std::vector<const char *> validationLayers;
