@@ -1,7 +1,12 @@
 #pragma once
-#include "vulkan/vulkan_core.h"
 #include <lib/log.hpp>
 #include <vulkan/vulkan.h>
+
+#define CALLBACKPRINT(severity, callBackName)                                  \
+  logPrint(severity, #callBackName, 0,                                         \
+           SET2E(FG(YELLOW_CODE), BG(BLACK_CODE)) "Validation:" RESET " %s",   \
+           pCallbackData->pMessage)
+#define DEBUGCALLBACK(severity) CALLBACKPRINT(severity, debugCallback)
 
 // is static, it goes into HPP
 static VKAPI_ATTR VkBool32 VKAPI_CALL
@@ -11,13 +16,15 @@ debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
               void *pUserData) {
 
   if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-    logError("VulkanVL: %s", pCallbackData->pMessage);
+    DEBUGCALLBACK(LOG_LEVEL_ERROR);
   else if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-    logWarning("VulkanVL: %s", pCallbackData->pMessage);
+    DEBUGCALLBACK(LOG_LEVEL_WARNING);
   else if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
-    logInfo("VulkanVL: %s", pCallbackData->pMessage);
+    DEBUGCALLBACK(LOG_LEVEL_INFO);
   else
-    logDebug("VulkanVL: %s", pCallbackData->pMessage);
+    DEBUGCALLBACK(LOG_LEVEL_DEBUG);
 
   return VK_FALSE;
 }
+
+#undef CALLBACKPRINT

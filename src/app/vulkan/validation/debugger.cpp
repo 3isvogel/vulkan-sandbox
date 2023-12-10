@@ -1,4 +1,5 @@
 #include "vulkan/vulkan_core.h"
+#include <app/vulkan/validation/callbacks.hpp>
 #include <app/vulkan/validation/debugger.hpp>
 #include <app/vulkan/validation/enable.hpp>
 

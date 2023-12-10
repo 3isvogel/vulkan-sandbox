@@ -21,7 +21,7 @@ CFLAGS =
 # C++ flags
 CXXFLAGS = -std=c++17
 # C/C++ flags
-CPPFLAGS = -O2
+CPPFLAGS = -O2 # -DBUILD_RELEASE # -DLOG_DISABLE_COLOR
 # dependency-generation flags
 DEPFLAGS = -MMD -MP -Isrc/
 # linker flags

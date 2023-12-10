@@ -1,10 +1,7 @@
 #pragma once
 
-#include "vulkan/vulkan_core.h"
-#include <string>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
 
 class MainApp {
 public:

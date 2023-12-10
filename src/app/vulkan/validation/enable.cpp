@@ -1,8 +1,7 @@
-#include "lib/log.hpp"
 #include <app/vulkan/validation/EXT_proxy.hpp>
 #include <app/vulkan/validation/debugger.hpp>
 #include <app/vulkan/validation/enable.hpp>
-#include <stdexcept>
+#include <lib/log.hpp>
 #include <vulkan/vulkan.h>
 
 const std::vector<const char *> validationLayers = {
@@ -17,7 +16,7 @@ const bool enableValidationLayers = true;
 void requireValidationLayerOnValidation(std::vector<const char *> &extensions) {
   if (enableValidationLayers) {
     extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    logDebug("Validation layer enabled");
+    logInfo("Validation layer enabled");
   }
 }
 
@@ -52,6 +51,9 @@ void populateDebugMessengerOnValidation(VkInstanceCreateInfo &createInfo) {
         static_cast<uint32_t>(validationLayers.size());
     createInfo.ppEnabledLayerNames = validationLayers.data();
     createInfo.pNext = &getDefaultDebugMessengerCreateInfo();
+  } else {
+    createInfo.enabledLayerCount = 0;
+    createInfo.pNext = nullptr;
   }
 }
 
@@ -74,5 +76,16 @@ void destroyDebugMessengerOnValidation(
     VkInstance instance, VkDebugUtilsMessengerEXT &debugMessenger) {
   if (enableValidationLayers) {
     DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+  }
+}
+
+void legacyPopulateDeviceSpecificValidationOnValidation(
+    VkDeviceCreateInfo &createInfo) {
+  if (enableValidationLayers) {
+    createInfo.enabledLayerCount =
+        static_cast<uint32_t>(validationLayers.size());
+    createInfo.ppEnabledLayerNames = validationLayers.data();
+  } else {
+    createInfo.enabledLayerCount = 0;
   }
 }
