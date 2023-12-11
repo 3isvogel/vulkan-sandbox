@@ -23,6 +23,7 @@ void MainApp::initVulkan() {
   createLogicalDevice();
   createSwapChain();
   createImageViews();
+  createRenderPass();
   createGraphicPipelines();
 }
 
@@ -36,6 +37,11 @@ void MainApp::mainLoop() {
 }
 
 void MainApp::cleanup() {
+  for (auto pipeline : pipelines)
+    pipeline.destroy();
+  logDebug("Pipelines: destroyed");
+  renderPass.destroy();
+  logDebug("Render pass: destroyed");
   for (auto imageView : swapChain.imageViews)
     vkDestroyImageView(device, imageView, nullptr);
   logDebug("Image views: destroyed");

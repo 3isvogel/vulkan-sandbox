@@ -1,7 +1,9 @@
 #include <app/app.hpp>
 #include <app/vulkan/instance.hpp>
 #include <app/vulkan/physical_devices.hpp>
+#include <app/vulkan/pipeline.hpp>
 #include <app/vulkan/queues.hpp>
+#include <app/vulkan/renderpass.hpp>
 #include <app/vulkan/validation/enable.hpp>
 #include <lib/log.hpp>
 
@@ -139,3 +141,16 @@ void MainApp::createSurface() {
   }
   logDebug("GLFW Surface: created");
 }
+
+void MainApp::createGraphicPipelines() {
+
+  auto trianglePipeline = Pipeline(device, swapChain, renderPass);
+
+  pipelines.push_back(trianglePipeline.setFragStage("triangleFrag.spv")
+                          .setVertStage("triangleVert.spv")
+                          .setInputAssembly(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+                          .setDynamicStates()
+                          .build());
+}
+
+void MainApp::createRenderPass() { renderPass = RenderPass(device, swapChain); }

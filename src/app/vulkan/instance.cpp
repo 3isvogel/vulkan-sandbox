@@ -28,7 +28,7 @@ bool requireExtensionIfAvailable(std::vector<const char *> &extensions,
 
   for (const auto &extProp : availableExt) {
     if (strcmp(ext, extProp.extensionName) == 0) {
-      extensions.emplace_back(ext);
+      extensions.push_back(ext);
       return true;
     }
   }

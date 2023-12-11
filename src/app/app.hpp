@@ -1,10 +1,11 @@
 #pragma once
 
-#include "vulkan/vulkan_core.h"
-#include <vector>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <app/vulkan/pipeline.hpp>
 #include <app/vulkan/queues.hpp>
+#include <app/vulkan/renderpass.hpp>
+#include <vector>
 
 class MainApp {
 public:
@@ -30,13 +31,10 @@ private:
 #define X(name) VkQueue name##Queue;
   FAMILIES_LIST
 #undef X
-  struct SwapChain {
-    VkSwapchainKHR chain;
-    std::vector<VkImage> images;
-    VkFormat imageFormat;
-    VkExtent2D extent;
-    std::vector<VkImageView> imageViews;
-  } swapChain;
+  SwapChain swapChain;
+
+  RenderPass renderPass;
+  std::vector<Pipeline> pipelines;
 
 private:
   // Initialize window (this allow for displaying)
@@ -52,5 +50,6 @@ private:
   void createLogicalDevice();
   void createSwapChain();
   void createImageViews();
+  void createRenderPass();
   void createGraphicPipelines();
 };

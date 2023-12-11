@@ -6,6 +6,14 @@
 
 // #define ADDITIONAL_SWAPCHAIN_IMAGES 1
 
+typedef struct SwapChain {
+  VkSwapchainKHR chain;
+  std::vector<VkImage> images;
+  VkFormat imageFormat;
+  VkExtent2D extent;
+  std::vector<VkImageView> imageViews;
+} SwapChain;
+
 struct SwapChainSupportDetails {
   VkSurfaceCapabilitiesKHR capabilities;
   std::vector<VkSurfaceFormatKHR> formats;

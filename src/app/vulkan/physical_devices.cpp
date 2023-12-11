@@ -34,7 +34,7 @@ enforceDeviceExtensionsRequirements(VkPhysicalDevice physicalDevice) {
   for (const auto &extension : extensions)
     for (const auto &enforcingExtension : enforcingExtensions)
       if (strcmp(enforcingExtension, extension.extensionName) == 0)
-        deviceExtensions.emplace_back(enforcingExtension);
+        deviceExtensions.push_back(enforcingExtension);
   return deviceExtensions;
 }
 
