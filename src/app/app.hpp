@@ -5,6 +5,7 @@
 #include <app/vulkan/pipeline.hpp>
 #include <app/vulkan/queues.hpp>
 #include <app/vulkan/renderpass.hpp>
+#include <app/vulkan/sync.hpp>
 #include <vector>
 
 class MainApp {
@@ -25,7 +26,6 @@ private:
   GLFWwindow *window;
   VkInstance instance;
   VkSurfaceKHR surface;
-  // VkDebugUtilsMessengerEXT debugMessenger;
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
   VkDevice device;
 #define X(name) VkQueue name##Queue;
@@ -33,8 +33,17 @@ private:
 #undef X
   SwapChain swapChain;
 
+  struct Config {
+    VkViewport viewport;
+    VkRect2D scissor;
+  } config{};
+
   RenderPass renderPass;
-  std::vector<Pipeline> pipelines;
+  Pipeline pipeline;
+  VkCommandPool commandPool;
+  VkCommandBuffer commandBuffer;
+
+  Sync sync;
 
 private:
   // Initialize window (this allow for displaying)
@@ -42,6 +51,7 @@ private:
   void initVulkan();
   void mainLoop();
   void cleanup();
+  void drawFrame();
 
   // Vulkan setup
   void createInstance();
@@ -52,4 +62,11 @@ private:
   void createImageViews();
   void createRenderPass();
   void createGraphicPipelines();
+  void createFramebuffers();
+  void createCommandPool();
+  void createCommandBuffer();
+  void createSyncObjects();
+  void recordCommandBuffer(uint32_t imageIndex);
+
+  void upateDynamicViewport();
 };

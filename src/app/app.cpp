@@ -1,4 +1,7 @@
+#include "vulkan/vulkan_core.h"
 #include <app/app.hpp>
+#include <app/vulkan/commandbuffer.hpp>
+#include <cstdint>
 #include <lib/log.hpp>
 
 MainApp::MainApp() {}
@@ -25,6 +28,10 @@ void MainApp::initVulkan() {
   createImageViews();
   createRenderPass();
   createGraphicPipelines();
+  createFramebuffers();
+  createCommandPool();
+  createCommandBuffer();
+  createSyncObjects();
 }
 
 void MainApp::mainLoop() {
@@ -32,14 +39,24 @@ void MainApp::mainLoop() {
   logInfo("Starting \"%s\"", name);
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
+    drawFrame();
   }
+  logDebug("Waiting for device to complete");
+  vkDeviceWaitIdle(device);
+
   logInfo("Stopping \"%s\"", name);
 }
 
 void MainApp::cleanup() {
-  for (auto pipeline : pipelines)
-    pipeline.destroy();
-  logDebug("Pipelines: destroyed");
+  sync.destroy();
+  logDebug("Semaphores: destroyed");
+  vkDestroyCommandPool(device, commandPool, nullptr);
+  logDebug("Command pool: destroyed");
+  for (auto framebuffer : swapChain.framebuffers)
+    vkDestroyFramebuffer(device, framebuffer, nullptr);
+  logDebug("Framebuffers: destroyed");
+  pipeline.destroy();
+  logDebug("Pipeline: destroyed");
   renderPass.destroy();
   logDebug("Render pass: destroyed");
   for (auto imageView : swapChain.imageViews)
@@ -56,4 +73,16 @@ void MainApp::cleanup() {
   glfwDestroyWindow(window);
   logDebug("GLFW Window: destroyed");
   glfwTerminate();
+}
+
+void MainApp::createSyncObjects() { sync = Sync(device, swapChain); }
+
+void MainApp::drawFrame() {
+  uint32_t imageIndex;
+  sync.acquireNextImage(imageIndex);
+
+  vkResetCommandBuffer(commandBuffer, 0);
+  recordCommandBuffer(imageIndex);
+  sync.submitCommand(commandBuffer, graphicsQueue);
+  sync.presentQueue(presentQueue, imageIndex);
 }

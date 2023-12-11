@@ -1,5 +1,6 @@
 #include <app/app.hpp>
 #include <lib/log.hpp>
+#include <set>
 #include <stdexcept>
 
 int main() {

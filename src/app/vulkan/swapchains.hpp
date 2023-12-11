@@ -12,6 +12,7 @@ typedef struct SwapChain {
   VkFormat imageFormat;
   VkExtent2D extent;
   std::vector<VkImageView> imageViews;
+  std::vector<VkFramebuffer> framebuffers;
 } SwapChain;
 
 struct SwapChainSupportDetails {

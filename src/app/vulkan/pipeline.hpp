@@ -8,15 +8,16 @@
 
 class Pipeline {
 public:
+  Pipeline() = default;
   Pipeline(VkDevice device, SwapChain swapChain, RenderPass renderPass);
   Pipeline &setVertStage(const std::string &filename);
   Pipeline &setFragStage(const std::string &filename);
   Pipeline &setDynamicStates();
-  Pipeline &setStaticStates();
+  Pipeline &setStaticStates(VkViewport &viewport, VkRect2D &scissor);
   Pipeline &setInputAssembly(VkPrimitiveTopology topology,
                              VkBool32 restartEnable = VK_FALSE);
   Pipeline &build();
-  // Pipeline &setViewPort(); // not yet implementingd
+  VkPipeline &get() { return graphicsPipeline; }
   void destroy();
 
   static void set_path(const std::string &path) { base_path = path; }
@@ -27,8 +28,17 @@ private:
 private:
   static std::string base_path;
 
+  VkPipelineVertexInputStateCreateInfo vertexInputInfo;
+  VkPipelineInputAssemblyStateCreateInfo inputAssembly;
+
   VkDevice device;
   SwapChain swapChain;
+
+  VkPipelineViewportStateCreateInfo viewportState;
+  VkPipelineRasterizationStateCreateInfo rasterizer;
+  VkPipelineMultisampleStateCreateInfo multisampling;
+  VkPipelineColorBlendAttachmentState colorBlendAttachment;
+  VkPipelineColorBlendStateCreateInfo colorBlending;
 
   VkShaderModule fragModule = VK_NULL_HANDLE;
   VkShaderModule vertModule = VK_NULL_HANDLE;
@@ -37,20 +47,6 @@ private:
 
   std::vector<VkDynamicState> dynamicStates;
   VkPipelineDynamicStateCreateInfo dynamicState;
-
-  struct Config {
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo;
-    VkPipelineInputAssemblyStateCreateInfo inputAssembly;
-
-    VkViewport viewport;
-    VkRect2D scissor;
-
-    VkPipelineViewportStateCreateInfo viewportState;
-    VkPipelineRasterizationStateCreateInfo rasterizer;
-    VkPipelineMultisampleStateCreateInfo multisampling;
-    VkPipelineColorBlendAttachmentState colorBlendAttachment;
-    VkPipelineColorBlendStateCreateInfo colorBlending;
-  } config{};
 
   VkPipelineLayout pipelineLayout;
   VkGraphicsPipelineCreateInfo pipelineInfo;

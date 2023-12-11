@@ -1,3 +1,4 @@
+#include "vulkan/vulkan_core.h"
 #include <app/app.hpp>
 #include <app/vulkan/instance.hpp>
 #include <app/vulkan/physical_devices.hpp>
@@ -142,15 +143,81 @@ void MainApp::createSurface() {
   logDebug("GLFW Surface: created");
 }
 
+void MainApp::createRenderPass() { renderPass = RenderPass(device, swapChain); }
+
 void MainApp::createGraphicPipelines() {
 
-  auto trianglePipeline = Pipeline(device, swapChain, renderPass);
-
-  pipelines.push_back(trianglePipeline.setFragStage("triangleFrag.spv")
-                          .setVertStage("triangleVert.spv")
-                          .setInputAssembly(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
-                          .setDynamicStates()
-                          .build());
+  pipeline = Pipeline(device, swapChain, renderPass)
+                 .setFragStage("triangleFrag.spv")
+                 .setVertStage("triangleVert.spv")
+                 .setInputAssembly(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+                 .setDynamicStates()
+                 .build();
 }
 
-void MainApp::createRenderPass() { renderPass = RenderPass(device, swapChain); }
+void MainApp::createFramebuffers() {
+  swapChain.framebuffers.resize(swapChain.imageViews.size());
+  size_t i = 0;
+  for (; i < swapChain.imageViews.size(); i++) {
+    VkImageView attachments[] = {swapChain.imageViews[i]};
+
+    VkFramebufferCreateInfo framebufferInfo{
+        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        .renderPass = renderPass.get(),
+        .attachmentCount = 1,
+        .pAttachments = attachments,
+        .width = swapChain.extent.width,
+        .height = swapChain.extent.height,
+        .layers = 1};
+    if (vkCreateFramebuffer(device, &framebufferInfo, nullptr,
+                            &swapChain.framebuffers[i]) != VK_SUCCESS) {
+      e_runtime("Failed to create framebuffer");
+    }
+  }
+  logDebug("Framebuffers: created [%i]", i);
+}
+
+void MainApp::createCommandPool() {
+  QueueFamilyIndices queueFamilyIndices =
+      findQueueFamilies(physicalDevice, surface);
+
+  VkCommandPoolCreateInfo poolInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+      .queueFamilyIndex = queueFamilyIndices.graphicsFamily.value()};
+
+  if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) !=
+      VK_SUCCESS) {
+    e_runtime("Failed to create command pool");
+  }
+  logDebug("Command pool: created");
+}
+
+void MainApp::createCommandBuffer() {
+  // TODO: handle this better
+  VkCommandBufferAllocateInfo allocInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+      .commandPool = commandPool,
+      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+      .commandBufferCount = 1};
+
+  if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) !=
+      VK_SUCCESS) {
+    e_runtime("Failed to allocate command buffers");
+  }
+  logDebug("Command buffers: allocated");
+}
+
+void MainApp::upateDynamicViewport() {
+
+  // TODO: hardcoded default viewport, allow to set later
+  // TODO: fix fat assignment
+  config.viewport = {.x = 0.0f,
+                     .y = 0.0f,
+                     .width = (float)swapChain.extent.width,
+                     .height = (float)swapChain.extent.height,
+                     .minDepth = 0.0f,
+                     .maxDepth = 1.0f};
+
+  config.scissor = {.offset = {0, 0}, .extent = swapChain.extent};
+}

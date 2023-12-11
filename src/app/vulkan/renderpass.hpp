@@ -9,9 +9,11 @@ public:
   RenderPass();
   RenderPass(VkDevice device, SwapChain swapChain);
   void destroy();
-  VkRenderPass data() { return renderPass; };
+  inline VkRenderPass &get() { return renderPass; };
+  inline VkRenderPassCreateInfo &getInfo() { return renderPassInfo; }
 
 private:
   VkDevice device;
   VkRenderPass renderPass;
+  VkRenderPassCreateInfo renderPassInfo;
 };

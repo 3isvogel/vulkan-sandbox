@@ -143,7 +143,7 @@ void MainApp::createSwapChain() {
       VK_SUCCESS) {
     e_runtime("Failed to create swapchain");
   }
-  logDebug("SwapChain: created");
+  logDebug("Swap chain: created");
 
   vkGetSwapchainImagesKHR(device, swapChain.chain, &imageCount, nullptr);
   swapChain.images.resize(imageCount);

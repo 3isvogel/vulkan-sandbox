@@ -26,28 +26,18 @@ Pipeline::Pipeline(VkDevice device, SwapChain swapChain, RenderPass renderPass)
     : device(device), swapChain(swapChain), renderPass(renderPass) {
 
   // TODO: hardcoded for now, will be fixed later
-  config.vertexInputInfo = {
+  vertexInputInfo = {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
       .vertexBindingDescriptionCount = 0,
       .pVertexBindingDescriptions = nullptr,
       .vertexAttributeDescriptionCount = 0,
       .pVertexAttributeDescriptions = nullptr};
 
-  // TODO: hardcoded default viewport, allow to set later
-  config.viewport = {.x = 0.0f,
-                     .y = 0.0f,
-                     .width = (float)swapChain.extent.width,
-                     .height = (float)swapChain.extent.height,
-                     .minDepth = 0.0f,
-                     .maxDepth = 1.0f};
-
   dynamicState = {.sType =
                       VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
 
-  config.scissor = {.offset = {0, 0}, .extent = swapChain.extent};
-
   // TODO: hardcoded for now
-  config.rasterizer = {
+  rasterizer = {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
       // Set to true to clamp fragment to viewport
       .depthClampEnable = VK_FALSE,
@@ -69,17 +59,17 @@ Pipeline::Pipeline(VkDevice device, SwapChain swapChain, RenderPass renderPass)
       .depthBiasClamp = 0.0f,
       .depthBiasSlopeFactor = 0.0f};
 
-  config.multisampling = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-      .sampleShadingEnable = VK_FALSE,
-      .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-      // Optional
-      .minSampleShading = 1.0f,
-      .pSampleMask = nullptr,
-      .alphaToCoverageEnable = VK_FALSE,
-      .alphaToOneEnable = VK_FALSE};
+  multisampling = {.sType =
+                       VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+                   .sampleShadingEnable = VK_FALSE,
+                   .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+                   // Optional
+                   .minSampleShading = 1.0f,
+                   .pSampleMask = nullptr,
+                   .alphaToCoverageEnable = VK_FALSE,
+                   .alphaToOneEnable = VK_FALSE};
 
-  config.colorBlendAttachment = {
+  colorBlendAttachment = {
       .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                         VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
       // TODO: configure later for color blending
@@ -93,17 +83,17 @@ Pipeline::Pipeline(VkDevice device, SwapChain swapChain, RenderPass renderPass)
       .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
       .alphaBlendOp = VK_BLEND_OP_ADD};
 
-  config.colorBlending = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-      .logicOpEnable = VK_FALSE,
-      // Optional
-      .logicOp = VK_LOGIC_OP_COPY,
-      .attachmentCount = 1,
-      .pAttachments = &config.colorBlendAttachment,
-      .blendConstants[0] = 0.0f,
-      .blendConstants[1] = 0.0f,
-      .blendConstants[2] = 0.0f,
-      .blendConstants[3] = 0.0f};
+  colorBlending = {.sType =
+                       VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+                   .logicOpEnable = VK_FALSE,
+                   // Optional
+                   .logicOp = VK_LOGIC_OP_COPY,
+                   .attachmentCount = 1,
+                   .pAttachments = &colorBlendAttachment,
+                   .blendConstants[0] = 0.0f,
+                   .blendConstants[1] = 0.0f,
+                   .blendConstants[2] = 0.0f,
+                   .blendConstants[3] = 0.0f};
 }
 
 Pipeline &Pipeline::setVertStage(const std::string &filename) {
@@ -118,7 +108,7 @@ Pipeline &Pipeline::setVertStage(const std::string &filename) {
                      .module = vertModule,
                      .pName = "main"};
 
-  logDebug("Pipeline: vertex module: \"%s\"", filename.c_str());
+  // logDebug("Pipeline: vertex module: \"%s\"", filename.c_str());
   return *this;
 }
 
@@ -134,7 +124,7 @@ Pipeline &Pipeline::setFragStage(const std::string &filename) {
                      .module = fragModule,
                      .pName = "main"};
 
-  logDebug("Pipeline: fragment module: \"%s\"", filename.c_str());
+  // logDebug("Pipeline: fragment module: \"%s\"", filename.c_str());
   return *this;
 }
 
@@ -157,37 +147,32 @@ Pipeline &Pipeline::addDynamicState(VkDynamicState state) {
   return *this;
 }
 
-#define LIST_DYNAMIC_BASE                                                      \
-  X(VK_DYNAMIC_STATE_VIEWPORT)                                                 \
-  X(VK_DYNAMIC_STATE_SCISSOR)
-
 Pipeline &Pipeline::setDynamicStates() {
-#define X(name) addDynamicState(name);
-  LIST_DYNAMIC_BASE
-#undef X
+  addDynamicState(VK_DYNAMIC_STATE_VIEWPORT);
+  addDynamicState(VK_DYNAMIC_STATE_SCISSOR);
 
-  config.viewportState.sType =
-      VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-  config.viewportState.viewportCount = 1;
-  config.viewportState.scissorCount = 1;
+  viewportState = {.sType =
+                       VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+                   .viewportCount = 1,
+                   .scissorCount = 1};
 
   return *this;
 }
 
-Pipeline &Pipeline::setStaticStates() {
-  config.viewportState.sType =
-      VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-  config.viewportState.viewportCount = 1;
-  config.viewportState.pViewports = &(config.viewport);
-  config.viewportState.scissorCount = 1;
-  config.viewportState.pScissors = &(config.scissor);
+Pipeline &Pipeline::setStaticStates(VkViewport &viewport, VkRect2D &scissor) {
+  viewportState = {.sType =
+                       VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+                   .viewportCount = 1,
+                   .pViewports = &viewport,
+                   .scissorCount = 1,
+                   .pScissors = &scissor};
 
   return *this;
 }
 
 Pipeline &Pipeline::setInputAssembly(VkPrimitiveTopology topology,
                                      VkBool32 restartEnable) {
-  config.inputAssembly = {
+  inputAssembly = {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
       .topology = topology,
       .primitiveRestartEnable = restartEnable};
@@ -214,16 +199,16 @@ Pipeline &Pipeline::build() {
   pipelineInfo = {.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
                   .stageCount = 2,
                   .pStages = shaderStages,
-                  .pVertexInputState = &config.vertexInputInfo,
-                  .pInputAssemblyState = &config.inputAssembly,
-                  .pViewportState = &config.viewportState,
-                  .pRasterizationState = &config.rasterizer,
-                  .pMultisampleState = &config.multisampling,
+                  .pVertexInputState = &vertexInputInfo,
+                  .pInputAssemblyState = &inputAssembly,
+                  .pViewportState = &viewportState,
+                  .pRasterizationState = &rasterizer,
+                  .pMultisampleState = &multisampling,
                   .pDepthStencilState = nullptr,
-                  .pColorBlendState = &config.colorBlending,
+                  .pColorBlendState = &colorBlending,
                   .pDynamicState = &dynamicState,
                   .layout = pipelineLayout,
-                  .renderPass = renderPass.data(),
+                  .renderPass = renderPass.get(),
                   // Possible to use other passes
                   .subpass = 0,
                   // Optional (when createing derivative pipelines)
@@ -238,7 +223,7 @@ Pipeline &Pipeline::build() {
 
   vkDestroyShaderModule(device, fragModule, nullptr);
   vkDestroyShaderModule(device, vertModule, nullptr);
-  logDebug("Shader modules: destroyed");
+  // logDebug("Shader modules: destroyed");
 
   return *this;
 }
