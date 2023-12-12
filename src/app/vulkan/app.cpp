@@ -1,4 +1,3 @@
-#include "vulkan/vulkan_core.h"
 #include <app/app.hpp>
 #include <app/vulkan/instance.hpp>
 #include <app/vulkan/physical_devices.hpp>
@@ -10,7 +9,7 @@
 
 void MainApp::createInstance() {
 
-  enableValidationLayerOnValidation();
+  validation.enable();
 
   auto extensions = getRequiredExtensions();
 
@@ -45,11 +44,14 @@ void MainApp::createInstance() {
     logDebug("| %s", extension);
   }
 
-  populateDebugMessengerOnValidation(createInfo);
+  validation.populateDebugMessenger(createInfo);
 
   if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
     e_runtime("failed to create Vulkan instance");
   }
+
+  validation.ref(instance);
+
   logDebug("Vulkan instance: created \"%s\"", name);
 }
 
@@ -116,7 +118,7 @@ void MainApp::createLogicalDevice() {
       static_cast<uint32_t>(deviceExtensions.size());
   createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
-  legacyPopulateDeviceSpecificValidationOnValidation(createInfo);
+  validation.legacyPopulateDeviceSpecific(createInfo);
 
   if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) !=
       VK_SUCCESS) {

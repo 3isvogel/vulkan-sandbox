@@ -83,6 +83,7 @@ void MainApp::drawFrame() {
 
   vkResetCommandBuffer(commandBuffer, 0);
   recordCommandBuffer(imageIndex);
+
   sync.submitCommand(commandBuffer, graphicsQueue);
   sync.presentQueue(presentQueue, imageIndex);
 }

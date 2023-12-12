@@ -8,8 +8,8 @@
 
 std::string Pipeline::base_path = "shaders/";
 
-VkShaderModule createShaderModule(VkDevice device,
-                                  const std::vector<char> &code) {
+VkShaderModule Pipeline::createShaderModule(const std::string &filename) {
+  auto code = readFile(base_path + filename);
   VkShaderModuleCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
       .codeSize = code.size(),
@@ -17,7 +17,9 @@ VkShaderModule createShaderModule(VkDevice device,
   VkShaderModule shaderModule;
   if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) !=
       VK_SUCCESS) {
-    return VK_NULL_HANDLE;
+    destroy();
+    logError("Shader module: \"%s\" creation failed", filename.c_str());
+    e_runtime("Failed to create shader module");
   }
   return shaderModule;
 }
@@ -94,18 +96,22 @@ Pipeline::Pipeline(VkDevice device, SwapChain swapChain, RenderPass renderPass)
                    .blendConstants[1] = 0.0f,
                    .blendConstants[2] = 0.0f,
                    .blendConstants[3] = 0.0f};
+
+  viewportState = {.sType =
+                       VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+                   .viewportCount = 1,
+                   .scissorCount = 1};
+
+  shaderStages[0] = {};
+  shaderStages[1] = {};
 }
 
+// TODO: move all createion in .build()
 Pipeline &Pipeline::setVertStage(const std::string &filename) {
-  vertModule = createShaderModule(device, readFile(base_path + filename));
-  if (vertModule == VK_NULL_HANDLE) {
-    logError("Shader module: failed to create \"%s\"", filename.c_str());
-    e_runtime("Failed to create shader module");
-  }
+  vertShader = filename;
   shaderStages[0] = {.sType =
                          VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                      .stage = VK_SHADER_STAGE_VERTEX_BIT,
-                     .module = vertModule,
                      .pName = "main"};
 
   // logDebug("Pipeline: vertex module: \"%s\"", filename.c_str());
@@ -113,15 +119,10 @@ Pipeline &Pipeline::setVertStage(const std::string &filename) {
 }
 
 Pipeline &Pipeline::setFragStage(const std::string &filename) {
-  fragModule = createShaderModule(device, readFile(base_path + filename));
-  if (fragModule == VK_NULL_HANDLE) {
-    logError("Shader module: failed to create \"%s\"", filename.c_str());
-    e_runtime("Failed to create shader module");
-  }
+  fragShader = filename;
   shaderStages[1] = {.sType =
                          VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                      .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-                     .module = fragModule,
                      .pName = "main"};
 
   // logDebug("Pipeline: fragment module: \"%s\"", filename.c_str());
@@ -131,18 +132,12 @@ Pipeline &Pipeline::setFragStage(const std::string &filename) {
 void Pipeline::destroy() {
   vkDestroyPipeline(device, graphicsPipeline, nullptr);
   vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-  // vkDestroyShaderModule(device, fragModule, nullptr);
-  // vkDestroyShaderModule(device, vertModule, nullptr);
   logDebug("Pipeline: destroyed");
 }
 
 Pipeline &Pipeline::addDynamicState(VkDynamicState state) {
 
   dynamicStates.push_back(state);
-
-  dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-  dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
-  dynamicState.pDynamicStates = dynamicStates.data();
 
   return *this;
 }
@@ -151,21 +146,12 @@ Pipeline &Pipeline::setDynamicStates() {
   addDynamicState(VK_DYNAMIC_STATE_VIEWPORT);
   addDynamicState(VK_DYNAMIC_STATE_SCISSOR);
 
-  viewportState = {.sType =
-                       VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-                   .viewportCount = 1,
-                   .scissorCount = 1};
-
   return *this;
 }
 
 Pipeline &Pipeline::setStaticStates(VkViewport &viewport, VkRect2D &scissor) {
-  viewportState = {.sType =
-                       VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
-                   .viewportCount = 1,
-                   .pViewports = &viewport,
-                   .scissorCount = 1,
-                   .pScissors = &scissor};
+  viewportState.pViewports = &viewport;
+  viewportState.pScissors = &scissor;
 
   return *this;
 }
@@ -181,6 +167,10 @@ Pipeline &Pipeline::setInputAssembly(VkPrimitiveTopology topology,
 }
 
 Pipeline &Pipeline::build() {
+
+  dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+  dynamicState.pDynamicStates = dynamicStates.data();
+
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       // Optional
@@ -195,6 +185,15 @@ Pipeline &Pipeline::build() {
     e_runtime("Failed to create pipeline layout");
   }
 
+  if (!vertShader.empty()) {
+    VkShaderModule vertModule = createShaderModule(vertShader);
+    shaderStages[0].module = vertModule;
+  }
+  if (!fragShader.empty()) {
+    VkShaderModule fragModule = createShaderModule(fragShader);
+    shaderStages[1].module = fragModule;
+  }
+
   // TODO: this is horrible, manage it better
   pipelineInfo = {.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
                   .stageCount = 2,
@@ -206,6 +205,7 @@ Pipeline &Pipeline::build() {
                   .pMultisampleState = &multisampling,
                   .pDepthStencilState = nullptr,
                   .pColorBlendState = &colorBlending,
+                  // Separate this one to allow for both static and dynamic
                   .pDynamicState = &dynamicState,
                   .layout = pipelineLayout,
                   .renderPass = renderPass.get(),
@@ -221,9 +221,8 @@ Pipeline &Pipeline::build() {
   }
   logDebug("Pipeline: created");
 
-  vkDestroyShaderModule(device, fragModule, nullptr);
-  vkDestroyShaderModule(device, vertModule, nullptr);
-  // logDebug("Shader modules: destroyed");
+  vkDestroyShaderModule(device, shaderStages[0].module, nullptr);
+  vkDestroyShaderModule(device, shaderStages[1].module, nullptr);
 
   return *this;
 }

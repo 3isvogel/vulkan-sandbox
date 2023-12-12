@@ -140,8 +140,8 @@ reset:
 	$(RM) $(SHA)/*.spv
 
 # compile shaders only
-.PHONY: shaders
-shaders: $(SHADERS)
+.PHONY: compile-shaders
+compile-shaders: $(SHADERS)
 
 # clean shaders only
 .PHONY: clean-shaders

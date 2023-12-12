@@ -3,9 +3,6 @@
 #include <lib/log.hpp>
 #include <vector>
 
-void retrieveSwapChainImages(VkSwapchainKHR swapChain,
-                             std::vector<VkImage> &swapChainImages);
-
 SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device,
                                               VkSurfaceKHR surface) {
 

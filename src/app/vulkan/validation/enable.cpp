@@ -1,34 +1,33 @@
 #include <app/vulkan/validation/EXT_proxy.hpp>
 #include <app/vulkan/validation/debugger.hpp>
 #include <app/vulkan/validation/enable.hpp>
+#include <cstddef>
 #include <lib/log.hpp>
 #include <vulkan/vulkan.h>
 
-const std::vector<const char *> validationLayers = {
-    "VK_LAYER_KHRONOS_validation"};
+std::vector<const char *> Validation::layers = {"VK_LAYER_KHRONOS_validation"};
 
+#define VALIDATION_ENABLE true
 #ifdef BUILD_RELEASE
-const bool enableValidationLayers = false;
-#else
-const bool enableValidationLayers = true;
+#define VALIDATION_ENABLE
 #endif
 
-void requireValidationLayerOnValidation(std::vector<const char *> &extensions) {
-  if (enableValidationLayers) {
-    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    logInfo("Validation layer enabled");
-  }
-}
+const bool Validation::enabled = VALIDATION_ENABLE;
 
-void enableValidationLayerOnValidation() {
-  if (!enableValidationLayers)
+Validation::Validation(PFN_vkDebugUtilsMessengerCallbackEXT callback) {
+  debugMessengerCreateInfo = Debugger().callback(callback).info();
+}
+Validation::Validation() { debugMessengerCreateInfo = Debugger().info(); }
+
+void Validation::enable() {
+  if (!enabled)
     return;
   uint32_t layerCount;
   vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
   std::vector<VkLayerProperties> availableLayers(layerCount);
   vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-  for (const char *layerName : validationLayers) {
+  for (const char *layerName : layers) {
     bool layerFound = false;
 
     for (const auto &layerProperties : availableLayers) {
@@ -45,46 +44,40 @@ void enableValidationLayerOnValidation() {
   logDebug("ValidationLayer Available");
 }
 
-void populateDebugMessengerOnValidation(VkInstanceCreateInfo &createInfo) {
-  if (enableValidationLayers) {
-    createInfo.enabledLayerCount =
-        static_cast<uint32_t>(validationLayers.size());
-    createInfo.ppEnabledLayerNames = validationLayers.data();
-    createInfo.pNext = &getDefaultDebugMessengerCreateInfo();
+void Validation::populateDebugMessenger(VkInstanceCreateInfo &createInfo) {
+  if (enabled) {
+    createInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
+    createInfo.ppEnabledLayerNames = layers.data();
+    createInfo.pNext = &debugMessengerCreateInfo;
   } else {
     createInfo.enabledLayerCount = 0;
     createInfo.pNext = nullptr;
   }
 }
 
-void setupDebugMessengerOnValidation(VkInstance instance,
-                                     VkDebugUtilsMessengerEXT &debugMessenger) {
+void Validation::setup(VkInstance &instance) {
 
-  if (!enableValidationLayers)
+  if (!enabled)
     return;
 
-  VkDebugUtilsMessengerCreateInfoEXT createInfo;
-  populateDebugMessengerCreateInfo(createInfo);
+  ref(instance);
 
-  if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr,
+  if (CreateDebugUtilsMessengerEXT(instance, &debugMessengerCreateInfo, nullptr,
                                    &debugMessenger) != VK_SUCCESS) {
     e_runtime("Failed to setup debug messenger");
   }
 }
 
-void destroyDebugMessengerOnValidation(
-    VkInstance instance, VkDebugUtilsMessengerEXT &debugMessenger) {
-  if (enableValidationLayers) {
+void Validation::destroy() {
+  if (enabled) {
     DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
   }
 }
 
-void legacyPopulateDeviceSpecificValidationOnValidation(
-    VkDeviceCreateInfo &createInfo) {
-  if (enableValidationLayers) {
-    createInfo.enabledLayerCount =
-        static_cast<uint32_t>(validationLayers.size());
-    createInfo.ppEnabledLayerNames = validationLayers.data();
+void Validation::legacyPopulateDeviceSpecific(VkDeviceCreateInfo &createInfo) {
+  if (enabled) {
+    createInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
+    createInfo.ppEnabledLayerNames = layers.data();
   } else {
     createInfo.enabledLayerCount = 0;
   }

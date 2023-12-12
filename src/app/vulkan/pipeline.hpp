@@ -24,26 +24,26 @@ public:
 
 private:
   Pipeline &addDynamicState(VkDynamicState state);
+  VkShaderModule createShaderModule(const std::string &filename);
 
 private:
-  static std::string base_path;
-
-  VkPipelineVertexInputStateCreateInfo vertexInputInfo;
-  VkPipelineInputAssemblyStateCreateInfo inputAssembly;
-
   VkDevice device;
   SwapChain swapChain;
+
+  std::string fragShader = "";
+  std::string vertShader = "";
+
+  VkPipelineShaderStageCreateInfo shaderStages[2];
+
+  static std::string base_path;
+  VkPipelineVertexInputStateCreateInfo vertexInputInfo;
+  VkPipelineInputAssemblyStateCreateInfo inputAssembly;
 
   VkPipelineViewportStateCreateInfo viewportState;
   VkPipelineRasterizationStateCreateInfo rasterizer;
   VkPipelineMultisampleStateCreateInfo multisampling;
   VkPipelineColorBlendAttachmentState colorBlendAttachment;
   VkPipelineColorBlendStateCreateInfo colorBlending;
-
-  VkShaderModule fragModule = VK_NULL_HANDLE;
-  VkShaderModule vertModule = VK_NULL_HANDLE;
-
-  VkPipelineShaderStageCreateInfo shaderStages[2];
 
   std::vector<VkDynamicState> dynamicStates;
   VkPipelineDynamicStateCreateInfo dynamicState;

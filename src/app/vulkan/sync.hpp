@@ -14,11 +14,6 @@ public:
   void submitCommand(VkCommandBuffer &commandBuffer, VkQueue &graphicsQueue);
   void presentQueue(VkQueue &presentQueue, uint32_t &imageIndex);
 
-  VkSemaphore imageAvailabelSemaphore;
-  VkSemaphore renderFinishedSemaphore;
-
-  VkFence inFlightFence;
-
 private:
   inline void inflightWaitAndreset() {
     vkWaitForFences(device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
@@ -26,4 +21,9 @@ private:
   }
   VkDevice device;
   SwapChain swapChain;
+
+  VkSemaphore imageAvailabelSemaphore;
+  VkSemaphore renderFinishedSemaphore;
+
+  VkFence inFlightFence;
 };

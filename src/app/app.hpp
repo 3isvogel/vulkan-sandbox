@@ -1,5 +1,6 @@
 #pragma once
 
+#include <app/vulkan/validation/enable.hpp>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <app/vulkan/pipeline.hpp>
@@ -44,6 +45,7 @@ private:
   VkCommandBuffer commandBuffer;
 
   Sync sync;
+  Validation validation;
 
 private:
   // Initialize window (this allow for displaying)

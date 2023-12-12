@@ -17,7 +17,7 @@ std::vector<const char *> getRequiredExtensions() {
   std::vector<const char *> extensions(glfwExtensions,
                                        glfwExtensions + glfwExtensionCount);
 
-  requireValidationLayerOnValidation(extensions);
+  Validation::require(extensions);
   return extensions;
 }
 

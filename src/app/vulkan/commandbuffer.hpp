@@ -4,6 +4,8 @@
 #include <app/vulkan/pipeline.hpp>
 #include <app/vulkan/swapchains.hpp>
 
+class CommandBuffer {};
+
 void recordCommandBuffer(VkCommandBuffer &commandBuffer, uint32_t imageIndex,
                          VkRenderPass &renderPass, SwapChain &swapChain,
                          Pipeline pipeline);
