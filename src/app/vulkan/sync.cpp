@@ -1,12 +1,14 @@
-#include "vulkan/vulkan_core.h"
+#include <app/vulkan/swapchain.hpp>
 #include <app/vulkan/sync.hpp>
 #include <lib/log.hpp>
 #include <stdexcept>
+#include <vulkan/vulkan_core.h>
 
-Sync::Sync() = default;
+Sync &Sync::build() {
 
-Sync::Sync(VkDevice &device, SwapChain &swapChain)
-    : device(device), swapChain(swapChain) {
+  swapChain = swapChainRef.get();
+  device = swapChainRef.getDevice().get();
+
   VkSemaphoreCreateInfo semaphoreInfo{
       .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
 
@@ -16,36 +18,47 @@ Sync::Sync(VkDevice &device, SwapChain &swapChain)
       .flags = VK_FENCE_CREATE_SIGNALED_BIT};
 
   if (vkCreateSemaphore(device, &semaphoreInfo, nullptr,
-                        &imageAvailabelSemaphore) != VK_SUCCESS ||
+                        &imageAvailable.semaphore) != VK_SUCCESS ||
       vkCreateSemaphore(device, &semaphoreInfo, nullptr,
-                        &renderFinishedSemaphore) != VK_SUCCESS ||
-      vkCreateFence(device, &fenceInfo, nullptr, &inFlightFence) !=
+                        &renderFinished.semaphore) != VK_SUCCESS ||
+      vkCreateFence(device, &fenceInfo, nullptr, &inFlight.fence) !=
           VK_SUCCESS) {
     e_runtime("Failed to create Sync");
   }
+
+  graphicsQueue = swapChainRef.getDevice().getQueue().graphicsQueue;
+  presentQueue = swapChainRef.getDevice().getQueue().presentQueue;
+
+  return *this;
+}
+
+Sync &Sync::connect(SwapChain &swapChain) {
+  this->swapChainRef = swapChain;
+
+  return *this;
 }
 
 void Sync::destroy() {
-  vkDestroySemaphore(device, imageAvailabelSemaphore, nullptr);
-  vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
-  vkDestroyFence(device, inFlightFence, nullptr);
+  vkDestroySemaphore(device, imageAvailable.semaphore, nullptr);
+  vkDestroySemaphore(device, renderFinished.semaphore, nullptr);
+  vkDestroyFence(device, inFlight.fence, nullptr);
+  logDebug("Semaphores: destroyed");
 }
 
 void Sync::acquireNextImage(uint32_t &imageIndex) {
 
-  inflightWaitAndreset();
-  vkAcquireNextImageKHR(device, swapChain.chain, UINT64_MAX,
-                        imageAvailabelSemaphore, VK_NULL_HANDLE, &imageIndex);
+  inflightWaitAndReset();
+  vkAcquireNextImageKHR(device, swapChain, imageAvailable.timeout,
+                        imageAvailable.semaphore, VK_NULL_HANDLE, &imageIndex);
 }
 
-void Sync::submitCommand(VkCommandBuffer &commandBuffer,
-                         VkQueue &graphicsQueue) {
+void Sync::submitCommand(VkCommandBuffer commandBuffer) {
 
-  VkSemaphore waitSemaphores[] = {imageAvailabelSemaphore};
+  VkSemaphore waitSemaphores[] = {imageAvailable.semaphore};
   VkPipelineStageFlags waitStages[] = {
       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 
-  VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
+  VkSemaphore signalSemaphores[] = {renderFinished.semaphore};
 
   VkSubmitInfo submitInfo{.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
                           .waitSemaphoreCount = 1,
@@ -56,15 +69,15 @@ void Sync::submitCommand(VkCommandBuffer &commandBuffer,
                           .signalSemaphoreCount = 1,
                           .pSignalSemaphores = signalSemaphores};
 
-  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence)) {
+  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlight.fence)) {
     e_runtime("Failed to submit draw command buffer");
   }
 }
 
-void Sync::presentQueue(VkQueue &presentQueue, uint32_t &imageIndex) {
+void Sync::present(uint32_t &imageIndex) {
 
-  VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
-  VkSwapchainKHR swapChains[] = {swapChain.chain};
+  VkSemaphore signalSemaphores[] = {renderFinished.semaphore};
+  VkSwapchainKHR swapChains[] = {swapChain};
   VkPresentInfoKHR presentInfo{.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
                                .waitSemaphoreCount = 1,
                                .pWaitSemaphores = signalSemaphores,

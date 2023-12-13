@@ -2,17 +2,25 @@
 #include "vulkan/vulkan_core.h"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include <app/vulkan/swapchains.hpp>
+#include <app/vulkan/swapchain.hpp>
 
 class RenderPass {
 public:
   RenderPass();
-  RenderPass(VkDevice device, SwapChain swapChain);
   void destroy();
-  inline VkRenderPass &get() { return renderPass; };
+  RenderPass &bind(SwapChain &swapChain);
+  void setFramebuffer(VkFramebuffer frameBuffer);
+  RenderPass &setClearValue(const VkClearValue clearValue);
+  RenderPass &build();
+  inline const VkRenderPass get() { return renderPass; }
+  inline const VkRenderPassBeginInfo getInfo() { return info; }
+  inline SwapChain &getsSwapChain() { return swapChain; }
 
 private:
-  VkDevice device;
+  SwapChain swapChain;
   VkRenderPass renderPass;
-  VkRenderPassCreateInfo renderPassInfo;
+  VkRenderPassCreateInfo renderPassCreateInfo;
+
+  VkRenderPassBeginInfo info;
+  VkClearValue clear = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
 };

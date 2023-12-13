@@ -1,3 +1,9 @@
+#include "app/vulkan/commandpool.hpp"
+#include "app/vulkan/instance.hpp"
+#include "app/vulkan/logicaldevice.hpp"
+#include "app/vulkan/pipeline.hpp"
+#include "app/vulkan/renderpass.hpp"
+#include "app/vulkan/window.hpp"
 #include "vulkan/vulkan_core.h"
 #include <app/app.hpp>
 #include <app/vulkan/commandbuffer.hpp>
@@ -5,85 +11,69 @@
 #include <lib/log.hpp>
 
 MainApp::MainApp() {}
-MainApp::MainApp(int width, int height, const char name[])
+MainApp::MainApp(int width, int height, std::string name)
     : width(width), height(height), name(name) {}
 
-void MainApp::initWindow() {
-  glfwInit();
-  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-  window = glfwCreateWindow(width, height, name, nullptr, nullptr);
-  if (window == nullptr) {
-    e_runtime("Failed to create GLFW window");
-  }
-  logDebug("GLFW window: created \"%s\" (%dx%d)", name, width, height);
+void MainApp::run() {
+  window = Window().create(width, height, name.c_str());
+  initVulkan();
+  mainLoop();
+  cleanup();
 }
 
 void MainApp::initVulkan() {
-  createInstance();
-  createSurface();
-  pickPhysicalDevice();
-  createLogicalDevice();
-  createSwapChain();
-  createImageViews();
-  createRenderPass();
-  createGraphicPipelines();
-  createFramebuffers();
-  createCommandPool();
-  createCommandBuffer();
-  createSyncObjects();
+  instance = Instance().setName(name.c_str()).build();
+  surface = Surface().setBase(instance, window).build();
+  physicalDevice = PhysicalDevice().bind(surface);
+  logicalDevice = LogicalDevice().bind(physicalDevice).build();
+  swapChain = SwapChain().connect(logicalDevice, window).build();
+  imageView = ImageView().bind(swapChain).build();
+  renderPass = RenderPass().bind(swapChain).build();
+  pipeline = Pipeline().setRenderPass(renderPass).build();
+  framebuffer = Framebuffer().setBase(imageView, renderPass).build();
+  commandPool = CommandPool().bind(logicalDevice).build();
+  commandBuffer = CommandBuffer()
+                      .bind(pipeline)
+                      .bind(commandPool)
+                      .attach(framebuffer)
+                      .build();
+  sync = Sync().connect(swapChain).build();
 }
 
 void MainApp::mainLoop() {
   // Prevens app from closing
-  logInfo("Starting \"%s\"", name);
-  while (!glfwWindowShouldClose(window)) {
+  logInfo("Starting \"%s\"", name.c_str());
+  while (window.running()) {
     glfwPollEvents();
     drawFrame();
   }
   logDebug("Waiting for device to complete");
-  vkDeviceWaitIdle(device);
+  logicalDevice.waitIdle();
 
-  logInfo("Stopping \"%s\"", name);
+  logInfo("Stopping \"%s\"", name.c_str());
 }
 
 void MainApp::cleanup() {
   sync.destroy();
-  logDebug("Semaphores: destroyed");
-  vkDestroyCommandPool(device, commandPool, nullptr);
-  logDebug("Command pool: destroyed");
-  for (auto framebuffer : swapChain.framebuffers)
-    vkDestroyFramebuffer(device, framebuffer, nullptr);
-  logDebug("Framebuffers: destroyed");
+  commandPool.destroy();
+  framebuffer.destroy();
   pipeline.destroy();
-  logDebug("Pipeline: destroyed");
   renderPass.destroy();
-  logDebug("Render pass: destroyed");
-  for (auto imageView : swapChain.imageViews)
-    vkDestroyImageView(device, imageView, nullptr);
-  logDebug("Image views: destroyed");
-  vkDestroySwapchainKHR(device, swapChain.chain, nullptr);
-  logDebug("SwapChain: destroyed");
-  vkDestroyDevice(device, nullptr);
-  logDebug("Logical device: destroyed");
-  vkDestroySurfaceKHR(instance, surface, nullptr);
-  logDebug("GLFW surface: destroyed");
-  vkDestroyInstance(instance, nullptr);
-  logDebug("Vulkan instance: destroyed");
-  glfwDestroyWindow(window);
-  logDebug("GLFW Window: destroyed");
-  glfwTerminate();
+  imageView.destroy();
+  swapChain.destroy();
+  logicalDevice.destroy();
+  surface.destroy();
+  instance.destroy();
+  window.destroy();
 }
-
-void MainApp::createSyncObjects() { sync = Sync(device, swapChain); }
 
 void MainApp::drawFrame() {
   uint32_t imageIndex;
   sync.acquireNextImage(imageIndex);
 
-  vkResetCommandBuffer(commandBuffer, 0);
-  recordCommandBuffer(imageIndex);
+  commandBuffer.reset();
+  commandBuffer.record(imageIndex);
 
-  sync.submitCommand(commandBuffer, graphicsQueue);
-  sync.presentQueue(presentQueue, imageIndex);
+  sync.submitCommand(commandBuffer.get());
+  sync.present(imageIndex);
 }

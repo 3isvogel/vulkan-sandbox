@@ -1,5 +1,5 @@
-#include "app/vulkan/swapchains.hpp"
-#include <app/app.hpp>
+#include "app/vulkan/swapchain.hpp"
+#include "vulkan/vulkan_core.h"
 #include <app/vulkan/renderpass.hpp>
 #include <lib/log.hpp>
 
@@ -7,9 +7,14 @@ RenderPass::RenderPass() = default;
 
 // I have no idea what is going on so i'll link it for later
 // https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/02_Graphics_pipeline_basics/03_Render_passes.html#_attachment_description
-RenderPass::RenderPass(VkDevice device, SwapChain swapChain) : device(device) {
+RenderPass &RenderPass::bind(SwapChain &swapChain) {
+  this->swapChain = swapChain;
+  pass;
+}
+
+RenderPass &RenderPass::build() {
   VkAttachmentDescription colorAttachment{
-      .format = swapChain.imageFormat,
+      .format = swapChain.getFormat(),
       .samples = VK_SAMPLE_COUNT_1_BIT,
       // TODO: allow more advanced selecting
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -39,19 +44,40 @@ RenderPass::RenderPass(VkDevice device, SwapChain swapChain) : device(device) {
       .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
       .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT};
 
-  renderPassInfo = {.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-                    .attachmentCount = 1,
-                    .pAttachments = &colorAttachment,
-                    .subpassCount = 1,
-                    .pSubpasses = &subpass,
-                    .dependencyCount = 1,
-                    .pDependencies = &dependency};
+  renderPassCreateInfo = {.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+                          .attachmentCount = 1,
+                          .pAttachments = &colorAttachment,
+                          .subpassCount = 1,
+                          .pSubpasses = &subpass,
+                          .dependencyCount = 1,
+                          .pDependencies = &dependency};
 
-  if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) !=
-      VK_SUCCESS) {
+  if (vkCreateRenderPass(swapChain.getDevice().get(), &renderPassCreateInfo,
+                         nullptr, &renderPass) != VK_SUCCESS) {
     e_runtime("Failed to create render pass");
   }
   logDebug("Render pass: created");
+
+  info = {
+      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+      .renderPass = renderPass,
+      .renderArea = {.offset = {0, 0}, .extent = swapChain.getExtent()},
+      // What to use when defined (VK_ATTACHMENT_LOAD_OP_CLEAR) to clear screen
+      .clearValueCount = 1};
+
+  pass;
 }
 
-void RenderPass::destroy() { vkDestroyRenderPass(device, renderPass, nullptr); }
+void RenderPass::destroy() {
+  vkDestroyRenderPass(swapChain.getDevice().get(), renderPass, nullptr);
+  logDebug("Render pass: destroyed");
+}
+
+void RenderPass::setFramebuffer(VkFramebuffer frameBuffer) {
+  info.framebuffer = frameBuffer;
+}
+
+RenderPass &RenderPass::setClearValue(const VkClearValue clearValue) {
+  clear = clearValue;
+  pass;
+}

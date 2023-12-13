@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 int main() {
-  logSetLevel(LOG_LEVEL_DEBUG);
+  logSetLevel(LOG_LEVEL_ABSURD);
   MainApp app;
 
   try {

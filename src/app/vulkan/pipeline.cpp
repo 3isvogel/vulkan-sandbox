@@ -1,7 +1,6 @@
-#include "vulkan/vulkan_core.h"
-#include <cstddef>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <app/vulkan/logicaldevice.hpp>
 #include <app/vulkan/pipeline.hpp>
 #include <lib/loader.hpp>
 #include <lib/log.hpp>
@@ -15,8 +14,8 @@ VkShaderModule Pipeline::createShaderModule(const std::string &filename) {
       .codeSize = code.size(),
       .pCode = reinterpret_cast<const uint32_t *>(code.data())};
   VkShaderModule shaderModule;
-  if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) !=
-      VK_SUCCESS) {
+  if (vkCreateShaderModule(renderPass.getsSwapChain().getDevice().get(),
+                           &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
     destroy();
     logError("Shader module: \"%s\" creation failed", filename.c_str());
     e_runtime("Failed to create shader module");
@@ -24,8 +23,10 @@ VkShaderModule Pipeline::createShaderModule(const std::string &filename) {
   return shaderModule;
 }
 
-Pipeline::Pipeline(VkDevice device, SwapChain swapChain, RenderPass renderPass)
-    : device(device), swapChain(swapChain), renderPass(renderPass) {
+Pipeline &Pipeline::setRenderPass(RenderPass &renderPass) {
+
+  this->renderPass = renderPass;
+  this->device = renderPass.getsSwapChain().getDevice();
 
   // TODO: hardcoded for now, will be fixed later
   vertexInputInfo = {
@@ -104,6 +105,8 @@ Pipeline::Pipeline(VkDevice device, SwapChain swapChain, RenderPass renderPass)
 
   shaderStages[0] = {};
   shaderStages[1] = {};
+
+  pass;
 }
 
 // TODO: move all createion in .build()
@@ -130,8 +133,8 @@ Pipeline &Pipeline::setFragStage(const std::string &filename) {
 }
 
 void Pipeline::destroy() {
-  vkDestroyPipeline(device, graphicsPipeline, nullptr);
-  vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+  vkDestroyPipeline(device.get(), graphicsPipeline, nullptr);
+  vkDestroyPipelineLayout(device.get(), pipelineLayout, nullptr);
   logDebug("Pipeline: destroyed");
 }
 
@@ -180,7 +183,7 @@ Pipeline &Pipeline::build() {
       .pPushConstantRanges = nullptr,
       .pNext = nullptr};
 
-  if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr,
+  if (vkCreatePipelineLayout(device.get(), &pipelineLayoutInfo, nullptr,
                              &pipelineLayout) != VK_SUCCESS) {
     e_runtime("Failed to create pipeline layout");
   }
@@ -215,14 +218,14 @@ Pipeline &Pipeline::build() {
                   .basePipelineHandle = VK_NULL_HANDLE,
                   .basePipelineIndex = -1};
 
-  if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo,
+  if (vkCreateGraphicsPipelines(device.get(), VK_NULL_HANDLE, 1, &pipelineInfo,
                                 nullptr, &graphicsPipeline) != VK_SUCCESS) {
     e_runtime("Failed to create vulkan pipeline");
   }
   logDebug("Pipeline: created");
 
-  vkDestroyShaderModule(device, shaderStages[0].module, nullptr);
-  vkDestroyShaderModule(device, shaderStages[1].module, nullptr);
+  vkDestroyShaderModule(device.get(), shaderStages[0].module, nullptr);
+  vkDestroyShaderModule(device.get(), shaderStages[1].module, nullptr);
 
   return *this;
 }

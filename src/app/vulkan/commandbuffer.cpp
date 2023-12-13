@@ -1,15 +1,44 @@
-#include <app/app.hpp>
 #include <app/vulkan/commandbuffer.hpp>
 #include <lib/log.hpp>
 #include <stdexcept>
 #include <vector>
 
-void MainApp::recordCommandBuffer(uint32_t imageIndex) {
-  VkCommandBufferBeginInfo beginInfo{
-      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-      // Optional
-      .flags = 0,
-      .pInheritanceInfo = nullptr};
+CommandBuffer::CommandBuffer() {
+  // TODO: handle this better
+  allocInfo = {.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+               .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+               .commandBufferCount = 1};
+
+  beginInfo = {.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+               // Optional
+               .flags = 0,
+               .pInheritanceInfo = nullptr};
+
+  viewport = {.x = 0.0f, .y = 0.0f, .minDepth = 0.0f, .maxDepth = 1.0f};
+  scissor.offset = {0, 0};
+}
+
+CommandBuffer &CommandBuffer::bind(CommandPool &commandPool) {
+  this->commandPool = commandPool;
+  allocInfo.commandPool = commandPool.get();
+  pass;
+}
+
+CommandBuffer &CommandBuffer::bind(Pipeline &pipeline) {
+  this->pipeline = pipeline;
+  pass;
+}
+
+CommandBuffer &CommandBuffer::build() {
+  if (vkAllocateCommandBuffers(commandPool.getDevice().get(), &allocInfo,
+                               &commandBuffer) != VK_SUCCESS) {
+    e_runtime("Failed to allocate command buffers");
+  }
+  logDebug("Command buffers: allocated");
+  pass;
+}
+
+CommandBuffer &CommandBuffer::record(uint32_t bufferId) {
 
   if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
     e_runtime("Failed to begin recording command buffer");
@@ -17,24 +46,21 @@ void MainApp::recordCommandBuffer(uint32_t imageIndex) {
 
   VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 0.0f}}};
 
-  VkRenderPassBeginInfo renderPassInfo{
-      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-      .renderPass = renderPass.get(),
-      .framebuffer = swapChain.framebuffers[imageIndex],
-      .renderArea = {.offset = {0, 0}, .extent = swapChain.extent},
-      // What to use when defined (VK_ATTACHMENT_LOAD_OP_CLEAR) to clear screen
-      .clearValueCount = 1,
-      .pClearValues = &clearColor};
+  auto renderPass = pipeline.getRenderPass();
 
-  vkCmdBeginRenderPass(commandBuffer, &renderPassInfo,
+  renderPass.setFramebuffer(framebuffer.get(bufferId));
+
+  auto renderPassBeginInfo = renderPass.getInfo();
+
+  vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo,
                        VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     pipeline.get());
 
-  upateDynamicViewport();
+  updateDynamicStates(renderPass);
 
-  vkCmdSetViewport(commandBuffer, 0, 1, &config.viewport);
-  vkCmdSetScissor(commandBuffer, 0, 1, &config.scissor);
+  vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+  vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
   vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
@@ -43,4 +69,17 @@ void MainApp::recordCommandBuffer(uint32_t imageIndex) {
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
     e_runtime("Failed to record command buffer");
   }
+  pass;
+}
+
+void CommandBuffer::updateDynamicStates(RenderPass &renderPass) {
+  auto extent = renderPass.getsSwapChain().getExtent();
+  viewport.width = static_cast<float>(extent.width);
+  viewport.height = static_cast<float>(extent.height);
+  scissor.extent = extent;
+}
+
+CommandBuffer &CommandBuffer::attach(Framebuffer &framebuffer) {
+  this->framebuffer = framebuffer;
+  pass;
 }

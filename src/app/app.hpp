@@ -1,51 +1,45 @@
 #pragma once
-
-#include <app/vulkan/validation/enable.hpp>
+#include "app/vulkan/commandbuffer.hpp"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
+#include <app/vulkan/framebuffer.hpp>
+#include <app/vulkan/imageview.hpp>
+#include <app/vulkan/instance.hpp>
+#include <app/vulkan/logicaldevice.hpp>
+#include <app/vulkan/physicaldevice.hpp>
 #include <app/vulkan/pipeline.hpp>
-#include <app/vulkan/queues.hpp>
+#include <app/vulkan/queuefamily.hpp>
 #include <app/vulkan/renderpass.hpp>
+#include <app/vulkan/surface.hpp>
+#include <app/vulkan/swapchain.hpp>
 #include <app/vulkan/sync.hpp>
+#include <app/vulkan/window.hpp>
 #include <vector>
 
 class MainApp {
 public:
   MainApp();
-  MainApp(int width, int height, const char name[]);
-
-  void run() {
-    initWindow();
-    initVulkan();
-    mainLoop();
-    cleanup();
-  }
+  MainApp(int width, int height, std::string name);
+  void run();
 
 private:
   const uint32_t width = 800, height = 600;
-  const char *name = "Vulkan app";
-  GLFWwindow *window;
-  VkInstance instance;
-  VkSurfaceKHR surface;
-  VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-  VkDevice device;
-#define X(name) VkQueue name##Queue;
-  FAMILIES_LIST
-#undef X
-  SwapChain swapChain;
-
-  struct Config {
-    VkViewport viewport;
-    VkRect2D scissor;
-  } config{};
+  std::string name;
 
   RenderPass renderPass;
   Pipeline pipeline;
-  VkCommandPool commandPool;
-  VkCommandBuffer commandBuffer;
-
+  Window window;
+  Instance instance;
+  Surface surface;
+  PhysicalDevice physicalDevice;
+  LogicalDevice logicalDevice;
   Sync sync;
-  Validation validation;
+  SwapChain swapChain;
+  ImageView imageView;
+  Framebuffer framebuffer;
+  CommandPool commandPool;
+  CommandBuffer commandBuffer;
 
 private:
   // Initialize window (this allow for displaying)
@@ -54,21 +48,4 @@ private:
   void mainLoop();
   void cleanup();
   void drawFrame();
-
-  // Vulkan setup
-  void createInstance();
-  void createSurface();
-  void pickPhysicalDevice();
-  void createLogicalDevice();
-  void createSwapChain();
-  void createImageViews();
-  void createRenderPass();
-  void createGraphicPipelines();
-  void createFramebuffers();
-  void createCommandPool();
-  void createCommandBuffer();
-  void createSyncObjects();
-  void recordCommandBuffer(uint32_t imageIndex);
-
-  void upateDynamicViewport();
 };

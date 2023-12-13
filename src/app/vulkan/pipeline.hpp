@@ -1,15 +1,16 @@
 #pragma once
-#include "vulkan/vulkan_core.h"
+#include "app/vulkan/logicaldevice.hpp"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <app/vulkan/renderpass.hpp>
-#include <app/vulkan/swapchains.hpp>
+#include <app/vulkan/swapchain.hpp>
 #include <string>
+#include <vulkan/vulkan_core.h>
 
 class Pipeline {
 public:
-  Pipeline() = default;
-  Pipeline(VkDevice device, SwapChain swapChain, RenderPass renderPass);
+  void destroy();
+  Pipeline &setRenderPass(RenderPass &renderPass);
   Pipeline &setVertStage(const std::string &filename);
   Pipeline &setFragStage(const std::string &filename);
   Pipeline &setDynamicStates();
@@ -17,8 +18,8 @@ public:
   Pipeline &setInputAssembly(VkPrimitiveTopology topology,
                              VkBool32 restartEnable = VK_FALSE);
   Pipeline &build();
-  VkPipeline &get() { return graphicsPipeline; }
-  void destroy();
+  VkPipeline get() { return graphicsPipeline; }
+  inline RenderPass &getRenderPass() { return renderPass; }
 
   static void set_path(const std::string &path) { base_path = path; }
 
@@ -27,8 +28,8 @@ private:
   VkShaderModule createShaderModule(const std::string &filename);
 
 private:
-  VkDevice device;
-  SwapChain swapChain;
+  RenderPass renderPass;
+  LogicalDevice device;
 
   std::string fragShader = "";
   std::string vertShader = "";
@@ -50,7 +51,6 @@ private:
 
   VkPipelineLayout pipelineLayout;
   VkGraphicsPipelineCreateInfo pipelineInfo;
-  RenderPass renderPass;
 
   VkPipeline graphicsPipeline;
 };

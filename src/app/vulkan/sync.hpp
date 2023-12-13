@@ -1,29 +1,36 @@
 #pragma once
-#include "app/vulkan/swapchains.hpp"
-#include "vulkan/vulkan_core.h"
-#include <cstdint>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <app/vulkan/swapchain.hpp>
+#include <cstdint>
 
 class Sync {
 public:
-  Sync();
-  Sync(VkDevice &device, SwapChain &swapChain);
   void destroy();
+  Sync &connect(SwapChain &swapChain);
+  Sync &build();
   void acquireNextImage(uint32_t &imageIndex);
-  void submitCommand(VkCommandBuffer &commandBuffer, VkQueue &graphicsQueue);
-  void presentQueue(VkQueue &presentQueue, uint32_t &imageIndex);
+  void submitCommand(VkCommandBuffer commandBuffer);
+  void present(uint32_t &imageIndex);
 
 private:
-  inline void inflightWaitAndreset() {
-    vkWaitForFences(device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(device, 1, &inFlightFence);
+  inline void inflightWaitAndReset() {
+    vkWaitForFences(device, 1, &inFlight.fence, VK_TRUE, inFlight.timeout);
+    vkResetFences(device, 1, &inFlight.fence);
   }
   VkDevice device;
-  SwapChain swapChain;
+  SwapChain swapChainRef;
+  VkSwapchainKHR swapChain;
+  VkQueue graphicsQueue;
+  VkQueue presentQueue;
 
-  VkSemaphore imageAvailabelSemaphore;
-  VkSemaphore renderFinishedSemaphore;
+  struct {
+    VkSemaphore semaphore;
+    uint64_t timeout = UINT64_MAX;
+  } imageAvailable, renderFinished;
 
-  VkFence inFlightFence;
+  struct {
+    VkFence fence;
+    uint64_t timeout = UINT64_MAX;
+  } inFlight;
 };
