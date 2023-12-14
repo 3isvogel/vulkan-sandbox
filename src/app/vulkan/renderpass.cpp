@@ -63,7 +63,8 @@ RenderPass &RenderPass::build() {
       .renderPass = renderPass,
       .renderArea = {.offset = {0, 0}, .extent = swapChain.getExtent()},
       // What to use when defined (VK_ATTACHMENT_LOAD_OP_CLEAR) to clear screen
-      .clearValueCount = 1};
+      .clearValueCount = 1,
+      .pClearValues = &clear};
 
   pass;
 }
@@ -77,7 +78,7 @@ void RenderPass::setFramebuffer(VkFramebuffer frameBuffer) {
   info.framebuffer = frameBuffer;
 }
 
-RenderPass &RenderPass::setClearValue(const VkClearValue clearValue) {
+RenderPass &RenderPass::setClearValue(VkClearValue clearValue) {
   clear = clearValue;
   pass;
 }

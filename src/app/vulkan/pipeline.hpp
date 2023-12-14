@@ -1,9 +1,7 @@
 #pragma once
-#include "app/vulkan/logicaldevice.hpp"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <app/vulkan/renderpass.hpp>
-#include <app/vulkan/swapchain.hpp>
 #include <string>
 #include <vulkan/vulkan_core.h>
 
@@ -20,23 +18,26 @@ public:
   Pipeline &build();
   VkPipeline get() { return graphicsPipeline; }
   inline RenderPass &getRenderPass() { return renderPass; }
+  inline bool getDynamic() { return isDynamic; }
 
-  static void set_path(const std::string &path) { base_path = path; }
+  static void setPath(const std::string &path) { basePath = path; }
 
 private:
   Pipeline &addDynamicState(VkDynamicState state);
   VkShaderModule createShaderModule(const std::string &filename);
 
 private:
+  bool isDynamic = false;
+
   RenderPass renderPass;
   LogicalDevice device;
 
   std::string fragShader = "";
   std::string vertShader = "";
 
-  VkPipelineShaderStageCreateInfo shaderStages[2];
+  VkPipelineShaderStageCreateInfo shaderStages[2] = {};
 
-  static std::string base_path;
+  static std::string basePath;
   VkPipelineVertexInputStateCreateInfo vertexInputInfo;
   VkPipelineInputAssemblyStateCreateInfo inputAssembly;
 

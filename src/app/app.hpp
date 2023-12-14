@@ -19,7 +19,7 @@
 
 class MainApp {
 public:
-  MainApp();
+  MainApp(std::string name) : name(name){};
   MainApp(int width, int height, std::string name);
   void run();
 

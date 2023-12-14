@@ -69,7 +69,7 @@ void logPrint(log_level_t log_level, const char *file_name, int line,
 
 #ifndef BUILD_RELEASE
 
-#define LOG(...) logPrint(LOG_LEVEL_ABSURD, __FILE__, __LINE__, __VA_ARGS__)
+#define LOG(...) logPrint(LOG_LEVEL_ABSURD, __FILE__, __LINE__, #__VA_ARGS__)
 #define logDebug(...) logPrint(LOG_LEVEL_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
 #define logInfo(...) logPrint(LOG_LEVEL_INFO, __FILE__, __LINE__, __VA_ARGS__)
 #define logWarning(...)                                                        \

@@ -18,10 +18,10 @@ private:
   std::string name;
 
   std::vector<VkExtensionProperties> queryExtensionProperties();
-  std::vector<const char *> getRequiredExtensions();
+  void getRequiredExtensions();
   bool requireExtensionIfAvailable(const char *ext);
 
   VkInstance instance;
   Validation validation;
-  std::vector<const char *> extensions;
+  std::vector<const char *> enabledExtensions;
 };

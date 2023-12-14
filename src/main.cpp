@@ -5,7 +5,7 @@
 
 int main() {
   logSetLevel(LOG_LEVEL_ABSURD);
-  MainApp app;
+  MainApp app("Vulkan app");
 
   try {
     app.run();

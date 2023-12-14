@@ -1,18 +1,18 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include <app/vulkan/logicaldevice.hpp>
 #include <app/vulkan/pipeline.hpp>
 #include <lib/loader.hpp>
 #include <lib/log.hpp>
 
-std::string Pipeline::base_path = "shaders/";
+std::string Pipeline::basePath = "";
 
 VkShaderModule Pipeline::createShaderModule(const std::string &filename) {
-  auto code = readFile(base_path + filename);
+  auto code = readFile(basePath + filename);
   VkShaderModuleCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
       .codeSize = code.size(),
       .pCode = reinterpret_cast<const uint32_t *>(code.data())};
+
   VkShaderModule shaderModule;
   if (vkCreateShaderModule(renderPass.getsSwapChain().getDevice().get(),
                            &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
@@ -20,6 +20,7 @@ VkShaderModule Pipeline::createShaderModule(const std::string &filename) {
     logError("Shader module: \"%s\" creation failed", filename.c_str());
     e_runtime("Failed to create shader module");
   }
+
   return shaderModule;
 }
 
@@ -103,9 +104,6 @@ Pipeline &Pipeline::setRenderPass(RenderPass &renderPass) {
                    .viewportCount = 1,
                    .scissorCount = 1};
 
-  shaderStages[0] = {};
-  shaderStages[1] = {};
-
   pass;
 }
 
@@ -146,15 +144,28 @@ Pipeline &Pipeline::addDynamicState(VkDynamicState state) {
 }
 
 Pipeline &Pipeline::setDynamicStates() {
+
+  dynamicStates.clear();
+
   addDynamicState(VK_DYNAMIC_STATE_VIEWPORT);
   addDynamicState(VK_DYNAMIC_STATE_SCISSOR);
+
+  dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+  dynamicState.pDynamicStates = dynamicStates.data();
+
+  isDynamic = true;
 
   return *this;
 }
 
 Pipeline &Pipeline::setStaticStates(VkViewport &viewport, VkRect2D &scissor) {
+  dynamicState.dynamicStateCount = 0;
+
+  dynamicStates.clear();
   viewportState.pViewports = &viewport;
   viewportState.pScissors = &scissor;
+
+  isDynamic = false;
 
   return *this;
 }
@@ -170,9 +181,6 @@ Pipeline &Pipeline::setInputAssembly(VkPrimitiveTopology topology,
 }
 
 Pipeline &Pipeline::build() {
-
-  dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
-  dynamicState.pDynamicStates = dynamicStates.data();
 
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,

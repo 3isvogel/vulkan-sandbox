@@ -34,8 +34,6 @@ private:
 
   VkViewport viewport;
   VkRect2D scissor;
-};
 
-void recordCommandBuffer(VkCommandBuffer &commandBuffer, uint32_t imageIndex,
-                         VkRenderPass &renderPass, SwapChain &swapChain,
-                         Pipeline pipeline);
+  bool dynamicStates = false;
+};

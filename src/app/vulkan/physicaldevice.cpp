@@ -19,19 +19,15 @@ PhysicalDevice &PhysicalDevice::bind(Surface &surface) {
   this->surface = surface;
   auto instance = surface.getInstance();
 
-#define X(name) name,
-  std::vector<const char *> deviceExtensions = {DEVICE_EXTENSIONS_LIST};
+#define X(name) deviceExtensions.push_back(name);
+  DEVICE_EXTENSIONS_LIST
 #undef X
 
-  enforceExtensionsRequirements();
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance.get(), &deviceCount, nullptr);
-
-  if (deviceCount == 0) {
-    e_runtime("No GPUs found with vulkan support");
-  }
+  if (deviceCount == 0)
+    e_runtime("No GPUs found with Vulkan support");
   logDebug("GPUs Found: %d", deviceCount);
-
   std::vector<VkPhysicalDevice> devices(deviceCount);
   vkEnumeratePhysicalDevices(instance.get(), &deviceCount, devices.data());
 
@@ -47,6 +43,8 @@ PhysicalDevice &PhysicalDevice::bind(Surface &surface) {
   if (physicalDevice == VK_NULL_HANDLE) {
     e_runtime("No suitable GPU found");
   }
+
+  enforceExtensionsRequirements();
   pass;
 }
 

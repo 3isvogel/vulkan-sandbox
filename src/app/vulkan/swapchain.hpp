@@ -35,7 +35,7 @@ private:
   VkSwapchainKHR swapChain;
 
   VkExtent2D extent;
-  SwapChainSupportDetails details;
+  SwapChainSupportDetails supportDetails;
 
   LogicalDevice device;
   Window window;

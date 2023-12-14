@@ -1,16 +1,10 @@
-#include "app/vulkan/commandpool.hpp"
-#include "app/vulkan/instance.hpp"
-#include "app/vulkan/logicaldevice.hpp"
 #include "app/vulkan/pipeline.hpp"
-#include "app/vulkan/renderpass.hpp"
-#include "app/vulkan/window.hpp"
 #include "vulkan/vulkan_core.h"
 #include <app/app.hpp>
 #include <app/vulkan/commandbuffer.hpp>
 #include <cstdint>
 #include <lib/log.hpp>
 
-MainApp::MainApp() {}
 MainApp::MainApp(int width, int height, std::string name)
     : width(width), height(height), name(name) {}
 
@@ -29,7 +23,14 @@ void MainApp::initVulkan() {
   swapChain = SwapChain().connect(logicalDevice, window).build();
   imageView = ImageView().bind(swapChain).build();
   renderPass = RenderPass().bind(swapChain).build();
-  pipeline = Pipeline().setRenderPass(renderPass).build();
+  Pipeline::setPath("shaders/");
+  pipeline = Pipeline()
+                 .setRenderPass(renderPass)
+                 .setInputAssembly(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST)
+                 .setDynamicStates()
+                 .setVertStage("triangleVert.spv")
+                 .setFragStage("triangleFrag.spv")
+                 .build();
   framebuffer = Framebuffer().setBase(imageView, renderPass).build();
   commandPool = CommandPool().bind(logicalDevice).build();
   commandBuffer = CommandBuffer()

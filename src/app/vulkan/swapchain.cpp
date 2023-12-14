@@ -1,5 +1,5 @@
-#include "app/vulkan/logicaldevice.hpp"
-#include "app/vulkan/queuefamily.hpp"
+#include <app/vulkan/logicaldevice.hpp>
+#include <app/vulkan/queuefamily.hpp>
 #include <app/vulkan/swapchain.hpp>
 #include <lib/log.hpp>
 #include <vector>
@@ -8,23 +8,24 @@
 // fallbacks to 0 when no other is available, may implement later a more
 // advanced selectino method
 VkSurfaceFormatKHR SwapChain::bestFormat() {
-  for (const auto &availableFormat : details.formats)
+  for (const auto &availableFormat : supportDetails.formats) {
     if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
         availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
       return availableFormat;
+  }
 
-  return details.formats[0];
+  return supportDetails.formats[0];
 }
 
 SwapChain &SwapChain::connect(LogicalDevice &device, Window &window) {
-  device = device;
-  window = window;
+  this->device = device;
+  this->window = window;
   pass;
 }
 
 VkPresentModeKHR SwapChain::bestPresentMode() {
   if (tripleBuffering)
-    for (auto const &availablePresentMode : details.presentModes)
+    for (auto const &availablePresentMode : supportDetails.presentModes)
       if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
         logDebug("Triple buffering: requested");
         return availablePresentMode;
@@ -35,9 +36,9 @@ VkPresentModeKHR SwapChain::bestPresentMode() {
 
 // Just query GLFW UwU
 VkExtent2D SwapChain::bestExtent() {
-  if (details.capabilities.currentExtent.width !=
+  if (supportDetails.capabilities.currentExtent.width !=
       std::numeric_limits<uint32_t>::max()) {
-    return details.capabilities.currentExtent;
+    return supportDetails.capabilities.currentExtent;
   } else {
     int width, height;
     glfwGetFramebufferSize(window.get(), &width, &height);
@@ -45,18 +46,20 @@ VkExtent2D SwapChain::bestExtent() {
     VkExtent2D actualExtent = {static_cast<uint32_t>(width),
                                static_cast<uint32_t>(height)};
 
-    actualExtent.width = std::clamp(actualExtent.width,
-                                    details.capabilities.minImageExtent.width,
-                                    details.capabilities.maxImageExtent.width);
+    actualExtent.width = std::clamp(
+        actualExtent.width, supportDetails.capabilities.minImageExtent.width,
+        supportDetails.capabilities.maxImageExtent.width);
     actualExtent.height = std::clamp(
-        actualExtent.height, details.capabilities.minImageExtent.height,
-        details.capabilities.maxImageExtent.height);
+        actualExtent.height, supportDetails.capabilities.minImageExtent.height,
+        supportDetails.capabilities.maxImageExtent.height);
 
     return actualExtent;
   }
 }
 
 SwapChain &SwapChain::build() {
+
+  supportDetails = device.getPhysicalDevice().getSupportDetails();
 
   auto physicalDevice = device.getPhysicalDevice();
   auto surface = physicalDevice.getSurface();
@@ -65,15 +68,15 @@ SwapChain &SwapChain::build() {
   VkPresentModeKHR presentMode = bestPresentMode();
   extent = bestExtent();
 
-  uint32_t imageCount = details.capabilities.minImageCount;
+  uint32_t imageCount = supportDetails.capabilities.minImageCount;
 
 #ifdef ADDITIONAL_SWAPCHAIN_IMAGES
   imageCount += ADDITIONAL_SWAPCHAIN_IMAGES;
 #endif
 
-  if (details.capabilities.maxImageCount > 0 &&
-      imageCount > details.capabilities.maxImageCount)
-    imageCount = details.capabilities.maxImageCount;
+  if (supportDetails.capabilities.maxImageCount > 0 &&
+      imageCount > supportDetails.capabilities.maxImageCount)
+    imageCount = supportDetails.capabilities.maxImageCount;
 
   VkSwapchainCreateInfoKHR createInfo{
       .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -84,7 +87,7 @@ SwapChain &SwapChain::build() {
       .imageExtent = extent,
       .imageArrayLayers = 1,
       .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-      .preTransform = details.capabilities.currentTransform,
+      .preTransform = supportDetails.capabilities.currentTransform,
       .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
       .presentMode = presentMode,
       .clipped = VK_TRUE,

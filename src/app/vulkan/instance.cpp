@@ -9,7 +9,7 @@ Instance &Instance::setName(const char *name) {
 }
 
 Instance &Instance::build() {
-  auto extensions = getRequiredExtensions();
+  getRequiredExtensions();
   VkApplicationInfo appInfo{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
                             .pApplicationName = name.c_str(),
                             .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
@@ -33,13 +33,15 @@ Instance &Instance::build() {
     createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 #endif
 
-  createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-  createInfo.ppEnabledExtensionNames = extensions.data();
+  createInfo.enabledExtensionCount =
+      static_cast<uint32_t>(enabledExtensions.size());
+  createInfo.ppEnabledExtensionNames = enabledExtensions.data();
 
-  logDebug("Required extensions [%i]", extensions.size());
-  for (const auto &extension : extensions) {
+  logDebug("Required extensions [%i]", enabledExtensions.size());
+  for (const auto &extension : enabledExtensions) {
     logDebug("| %s", extension);
   }
+
   validation.callback(debugCallback).populateDebugMessenger(createInfo);
 
   if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
@@ -61,15 +63,16 @@ std::vector<VkExtensionProperties> Instance::queryExtensionProperties() {
   return extensions;
 }
 
-std::vector<const char *> Instance::getRequiredExtensions() {
+void Instance::getRequiredExtensions() {
   uint32_t glfwExtensionCount = 0;
   const char **glfwExtensions;
   glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
   std::vector<const char *> extensions(glfwExtensions,
                                        glfwExtensions + glfwExtensionCount);
+  for (auto const &ext : extensions)
+    enabledExtensions.push_back(ext);
 
-  Validation::require(extensions);
-  return extensions;
+  Validation::require(enabledExtensions);
 }
 
 bool Instance::requireExtensionIfAvailable(const char *ext) {
@@ -78,7 +81,7 @@ bool Instance::requireExtensionIfAvailable(const char *ext) {
 
   for (const auto &extProp : availableExt) {
     if (strcmp(ext, extProp.extensionName) == 0) {
-      extensions.push_back(ext);
+      enabledExtensions.push_back(ext);
       return true;
     }
   }

@@ -12,6 +12,9 @@ public:
 
   inline VkPhysicalDevice get() { return physicalDevice; }
   inline Surface &getSurface() { return surface; }
+  inline SwapChainSupportDetails getSupportDetails() {
+    return querySwapChainSupport(physicalDevice);
+  }
   inline std::vector<const char *> extensions() { return deviceExtensions; };
 
   // TODO: not actually used for now, fix

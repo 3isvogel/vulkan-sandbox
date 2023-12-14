@@ -12,8 +12,10 @@ std::vector<char> readFile(const std::string &filename) {
 
   size_t fileSize = (size_t)file.tellg();
   std::vector<char> buffer(fileSize);
+
   file.seekg(0);
   file.read(buffer.data(), fileSize);
+
   file.close();
 
   return buffer;

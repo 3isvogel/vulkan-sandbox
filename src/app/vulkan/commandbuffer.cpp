@@ -26,6 +26,7 @@ CommandBuffer &CommandBuffer::bind(CommandPool &commandPool) {
 
 CommandBuffer &CommandBuffer::bind(Pipeline &pipeline) {
   this->pipeline = pipeline;
+  dynamicStates = pipeline.getDynamic();
   pass;
 }
 
@@ -57,7 +58,9 @@ CommandBuffer &CommandBuffer::record(uint32_t bufferId) {
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     pipeline.get());
 
-  updateDynamicStates(renderPass);
+  if (dynamicStates) {
+    updateDynamicStates(renderPass);
+  }
 
   vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
