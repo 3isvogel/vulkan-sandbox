@@ -17,9 +17,8 @@ VkSurfaceFormatKHR SwapChain::bestFormat() {
   return supportDetails.formats[0];
 }
 
-SwapChain &SwapChain::connect(LogicalDevice &device, Window &window) {
-  this->device = device;
-  this->window = window;
+SwapChain &SwapChain::connect(LogicalDevice &device) {
+  this->device = &device;
   pass;
 }
 
@@ -41,7 +40,8 @@ VkExtent2D SwapChain::bestExtent() {
     return supportDetails.capabilities.currentExtent;
   } else {
     int width, height;
-    glfwGetFramebufferSize(window.get(), &width, &height);
+    auto window = device->getPhysicalDevice()->getSurface()->getWindow();
+    glfwGetFramebufferSize(window->get(), &width, &height);
 
     VkExtent2D actualExtent = {static_cast<uint32_t>(width),
                                static_cast<uint32_t>(height)};
@@ -59,10 +59,10 @@ VkExtent2D SwapChain::bestExtent() {
 
 SwapChain &SwapChain::build() {
 
-  supportDetails = device.getPhysicalDevice().getSupportDetails();
+  supportDetails = device->getPhysicalDevice()->getSupportDetails();
 
-  auto physicalDevice = device.getPhysicalDevice();
-  auto surface = physicalDevice.getSurface();
+  auto physicalDevice = device->getPhysicalDevice();
+  auto surface = physicalDevice->getSurface();
 
   VkSurfaceFormatKHR surfaceFormat = bestFormat();
   VkPresentModeKHR presentMode = bestPresentMode();
@@ -80,7 +80,7 @@ SwapChain &SwapChain::build() {
 
   VkSwapchainCreateInfoKHR createInfo{
       .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-      .surface = surface.get(),
+      .surface = surface->get(),
       .minImageCount = imageCount,
       .imageFormat = surfaceFormat.format,
       .imageColorSpace = surfaceFormat.colorSpace,
@@ -96,7 +96,7 @@ SwapChain &SwapChain::build() {
       .queueFamilyIndexCount = 0,
       .pQueueFamilyIndices = nullptr};
 
-  QueueFamily indices = QueueFamily().bind(surface).find(physicalDevice.get());
+  QueueFamily indices = QueueFamily().bind(surface).find(physicalDevice->get());
   uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(),
                                    indices.presentFamily.value()};
 
@@ -106,21 +106,21 @@ SwapChain &SwapChain::build() {
     createInfo.pQueueFamilyIndices = queueFamilyIndices;
   }
 
-  if (vkCreateSwapchainKHR(device.get(), &createInfo, nullptr, &swapChain) !=
+  if (vkCreateSwapchainKHR(device->get(), &createInfo, nullptr, &swapChain) !=
       VK_SUCCESS) {
     e_runtime("Failed to create swapchain");
   }
   logDebug("Swap chain: created");
 
-  vkGetSwapchainImagesKHR(device.get(), swapChain, &imageCount, nullptr);
+  vkGetSwapchainImagesKHR(device->get(), swapChain, &imageCount, nullptr);
   images.resize(imageCount);
-  vkGetSwapchainImagesKHR(device.get(), swapChain, &imageCount, images.data());
+  vkGetSwapchainImagesKHR(device->get(), swapChain, &imageCount, images.data());
   imageFormat = surfaceFormat.format;
 
   return *this;
 }
 
 void SwapChain::destroy() {
-  vkDestroySwapchainKHR(device.get(), swapChain, nullptr);
+  vkDestroySwapchainKHR(device->get(), swapChain, nullptr);
   logDebug("SwapChain: destroyed");
 }

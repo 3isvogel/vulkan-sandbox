@@ -21,12 +21,12 @@ public:
   }
 
 private:
-  void updateDynamicStates(RenderPass &renderPass);
+  void updateDynamicStates(RenderPass *renderPass);
 
 private:
-  CommandPool commandPool;
-  Pipeline pipeline;
-  Framebuffer framebuffer;
+  CommandPool *commandPool;
+  Pipeline *pipeline;
+  Framebuffer *framebuffer;
 
   VkCommandBuffer commandBuffer;
   VkCommandBufferAllocateInfo allocInfo;

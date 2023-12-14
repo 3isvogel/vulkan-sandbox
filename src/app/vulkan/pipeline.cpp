@@ -6,7 +6,8 @@
 
 std::string Pipeline::basePath = "";
 
-VkShaderModule Pipeline::createShaderModule(const std::string &filename) {
+VkShaderModule Pipeline::createShaderModule(LogicalDevice *device,
+                                            const std::string &filename) {
   auto code = readFile(basePath + filename);
   VkShaderModuleCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
@@ -14,8 +15,8 @@ VkShaderModule Pipeline::createShaderModule(const std::string &filename) {
       .pCode = reinterpret_cast<const uint32_t *>(code.data())};
 
   VkShaderModule shaderModule;
-  if (vkCreateShaderModule(renderPass.getsSwapChain().getDevice().get(),
-                           &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+  if (vkCreateShaderModule(device->get(), &createInfo, nullptr,
+                           &shaderModule) != VK_SUCCESS) {
     destroy();
     logError("Shader module: \"%s\" creation failed", filename.c_str());
     e_runtime("Failed to create shader module");
@@ -26,8 +27,7 @@ VkShaderModule Pipeline::createShaderModule(const std::string &filename) {
 
 Pipeline &Pipeline::setRenderPass(RenderPass &renderPass) {
 
-  this->renderPass = renderPass;
-  this->device = renderPass.getsSwapChain().getDevice();
+  this->renderPass = &renderPass;
 
   // TODO: hardcoded for now, will be fixed later
   vertexInputInfo = {
@@ -131,8 +131,9 @@ Pipeline &Pipeline::setFragStage(const std::string &filename) {
 }
 
 void Pipeline::destroy() {
-  vkDestroyPipeline(device.get(), graphicsPipeline, nullptr);
-  vkDestroyPipelineLayout(device.get(), pipelineLayout, nullptr);
+  auto device = renderPass->getsSwapChain()->getDevice();
+  vkDestroyPipeline(device->get(), graphicsPipeline, nullptr);
+  vkDestroyPipelineLayout(device->get(), pipelineLayout, nullptr);
   logDebug("Pipeline: destroyed");
 }
 
@@ -182,6 +183,8 @@ Pipeline &Pipeline::setInputAssembly(VkPrimitiveTopology topology,
 
 Pipeline &Pipeline::build() {
 
+  auto device = renderPass->getsSwapChain()->getDevice();
+
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
       // Optional
@@ -191,17 +194,17 @@ Pipeline &Pipeline::build() {
       .pPushConstantRanges = nullptr,
       .pNext = nullptr};
 
-  if (vkCreatePipelineLayout(device.get(), &pipelineLayoutInfo, nullptr,
+  if (vkCreatePipelineLayout(device->get(), &pipelineLayoutInfo, nullptr,
                              &pipelineLayout) != VK_SUCCESS) {
     e_runtime("Failed to create pipeline layout");
   }
 
   if (!vertShader.empty()) {
-    VkShaderModule vertModule = createShaderModule(vertShader);
+    VkShaderModule vertModule = createShaderModule(device, vertShader);
     shaderStages[0].module = vertModule;
   }
   if (!fragShader.empty()) {
-    VkShaderModule fragModule = createShaderModule(fragShader);
+    VkShaderModule fragModule = createShaderModule(device, fragShader);
     shaderStages[1].module = fragModule;
   }
 
@@ -219,21 +222,21 @@ Pipeline &Pipeline::build() {
                   // Separate this one to allow for both static and dynamic
                   .pDynamicState = &dynamicState,
                   .layout = pipelineLayout,
-                  .renderPass = renderPass.get(),
+                  .renderPass = renderPass->get(),
                   // Possible to use other passes
                   .subpass = 0,
                   // Optional (when createing derivative pipelines)
                   .basePipelineHandle = VK_NULL_HANDLE,
                   .basePipelineIndex = -1};
 
-  if (vkCreateGraphicsPipelines(device.get(), VK_NULL_HANDLE, 1, &pipelineInfo,
+  if (vkCreateGraphicsPipelines(device->get(), VK_NULL_HANDLE, 1, &pipelineInfo,
                                 nullptr, &graphicsPipeline) != VK_SUCCESS) {
     e_runtime("Failed to create vulkan pipeline");
   }
   logDebug("Pipeline: created");
 
-  vkDestroyShaderModule(device.get(), shaderStages[0].module, nullptr);
-  vkDestroyShaderModule(device.get(), shaderStages[1].module, nullptr);
+  vkDestroyShaderModule(device->get(), shaderStages[0].module, nullptr);
+  vkDestroyShaderModule(device->get(), shaderStages[1].module, nullptr);
 
   return *this;
 }

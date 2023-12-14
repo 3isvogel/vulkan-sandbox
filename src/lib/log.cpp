@@ -4,12 +4,13 @@
 
 log_level_t treshold_log_level = LOG_LEVEL_ERROR;
 const char *log_level_flag[] = {
-    " --> ", "DEBUG", "INFO", "WARN", "ERROR",
+    "ALLOC", "DEBUG", "INFO", "WARN", "ERROR",
 };
 
-const char *log_level_color[] = {
-    SET_E(FG(YELLOW_CODE)), SET_E(FG(BLUE_CODE)), SET_E(FG(GREEN_CODE)),
-    SET2E(BLINKING_CODE, FG(YELLOW_CODE)), SET2E(BOLD_CODE, FG(RED_CODE))};
+const char *log_level_color[] = {SET2E(BG(YELLOW_CODE), FG(BLACK_CODE)),
+                                 SET_E(FG(BLUE_CODE)), SET_E(FG(GREEN_CODE)),
+                                 SET2E(BLINKING_CODE, FG(YELLOW_CODE)),
+                                 SET2E(BOLD_CODE, FG(RED_CODE))};
 
 void logSetLevel(log_level_t log_level) { treshold_log_level = log_level; }
 

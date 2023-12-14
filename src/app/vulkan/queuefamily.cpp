@@ -2,7 +2,7 @@
 #include <app/vulkan/queuefamily.hpp>
 #include <app/vulkan/surface.hpp>
 
-QueueFamily &QueueFamily::bind(Surface &surface) {
+QueueFamily &QueueFamily::bind(Surface *surface) {
   this->surface = surface;
   pass;
 }
@@ -18,7 +18,7 @@ QueueFamily &QueueFamily::find(VkPhysicalDevice physicalDevice) {
     }
 
     VkBool32 presentSupport = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface.get(),
+    vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface->get(),
                                          &presentSupport);
 
     if (presentSupport) {

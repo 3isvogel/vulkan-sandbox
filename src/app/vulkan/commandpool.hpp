@@ -10,9 +10,9 @@ public:
   CommandPool &build();
   CommandPool &bind(LogicalDevice &logicalDevice);
   inline const VkCommandPool get() { return commandPool; }
-  inline LogicalDevice &getDevice() { return device; }
+  inline LogicalDevice *getDevice() { return device; }
 
 private:
-  LogicalDevice device;
+  LogicalDevice *device;
   VkCommandPool commandPool;
 };

@@ -16,7 +16,7 @@ std::vector<const char *> PhysicalDevice::enforcingExtensions = {
     "VK_KHR_portability_subset"};
 
 PhysicalDevice &PhysicalDevice::bind(Surface &surface) {
-  this->surface = surface;
+  this->surface = &surface;
   auto instance = surface.getInstance();
 
 #define X(name) deviceExtensions.push_back(name);
@@ -24,12 +24,12 @@ PhysicalDevice &PhysicalDevice::bind(Surface &surface) {
 #undef X
 
   uint32_t deviceCount = 0;
-  vkEnumeratePhysicalDevices(instance.get(), &deviceCount, nullptr);
+  vkEnumeratePhysicalDevices(instance->get(), &deviceCount, nullptr);
   if (deviceCount == 0)
     e_runtime("No GPUs found with Vulkan support");
   logDebug("GPUs Found: %d", deviceCount);
   std::vector<VkPhysicalDevice> devices(deviceCount);
-  vkEnumeratePhysicalDevices(instance.get(), &deviceCount, devices.data());
+  vkEnumeratePhysicalDevices(instance->get(), &deviceCount, devices.data());
 
   int i = 0;
   for (const auto &device : devices) {
@@ -45,6 +45,7 @@ PhysicalDevice &PhysicalDevice::bind(Surface &surface) {
   }
 
   enforceExtensionsRequirements();
+
   pass;
 }
 
@@ -109,25 +110,25 @@ PhysicalDevice::querySwapChainSupport(VkPhysicalDevice device) {
 
   SwapChainSupportDetails details;
 
-  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface.get(),
+  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface->get(),
                                             &details.capabilities);
 
   uint32_t formatCount;
-  vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface.get(), &formatCount,
+  vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface->get(), &formatCount,
                                        nullptr);
   if (formatCount != 0) {
     details.formats.resize(formatCount);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface.get(), &formatCount,
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface->get(), &formatCount,
                                          details.formats.data());
   }
 
   uint32_t presentModeCount;
-  vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface.get(),
+  vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface->get(),
                                             &presentModeCount, nullptr);
   if (presentModeCount != 0) {
     details.presentModes.resize(presentModeCount);
     vkGetPhysicalDeviceSurfacePresentModesKHR(
-        device, surface.get(), &presentModeCount, details.presentModes.data());
+        device, surface->get(), &presentModeCount, details.presentModes.data());
   }
 
   return details;

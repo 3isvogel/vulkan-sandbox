@@ -13,15 +13,15 @@
 class SwapChain {
 public:
   void destroy();
-  SwapChain &connect(LogicalDevice &device, Window &window);
+  SwapChain &connect(LogicalDevice &device);
   SwapChain &build();
   inline SwapChain &askTripleBuffering() {
     tripleBuffering = true;
     return *this;
   }
-  inline LogicalDevice &getDevice() { return device; }
+  inline LogicalDevice *getDevice() { return device; }
   inline const VkSwapchainKHR get() { return swapChain; }
-  inline const std::vector<VkImage> getImages() { return images; }
+  inline const std::vector<VkImage> &getImages() { return images; }
   inline const VkFormat getFormat() { return imageFormat; }
   inline const VkExtent2D getExtent() { return extent; }
 
@@ -37,8 +37,7 @@ private:
   VkExtent2D extent;
   SwapChainSupportDetails supportDetails;
 
-  LogicalDevice device;
-  Window window;
+  LogicalDevice *device;
 
   bool tripleBuffering = false;
 };

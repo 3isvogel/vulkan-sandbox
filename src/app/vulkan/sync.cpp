@@ -6,8 +6,8 @@
 
 Sync &Sync::build() {
 
-  swapChain = swapChainRef.get();
-  device = swapChainRef.getDevice().get();
+  swapChain = swapChainRef->get();
+  device = swapChainRef->getDevice()->get();
 
   VkSemaphoreCreateInfo semaphoreInfo{
       .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
@@ -26,14 +26,14 @@ Sync &Sync::build() {
     e_runtime("Failed to create Sync");
   }
 
-  graphicsQueue = swapChainRef.getDevice().getQueue().graphicsQueue;
-  presentQueue = swapChainRef.getDevice().getQueue().presentQueue;
+  graphicsQueue = swapChainRef->getDevice()->getQueue().graphicsQueue;
+  presentQueue = swapChainRef->getDevice()->getQueue().presentQueue;
 
   return *this;
 }
 
 Sync &Sync::connect(SwapChain &swapChain) {
-  this->swapChainRef = swapChain;
+  this->swapChainRef = &swapChain;
 
   return *this;
 }

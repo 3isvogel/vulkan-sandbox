@@ -13,10 +13,11 @@ public:
   Surface &build();
 
   inline const VkSurfaceKHR get() { return surface; }
-  inline Instance &getInstance() { return instance; }
+  inline Instance *getInstance() { return instance; }
+  inline Window *getWindow() { return window; }
 
 private:
-  Instance instance;
-  Window window;
+  Instance *instance;
+  Window *window;
   VkSurfaceKHR surface;
 };

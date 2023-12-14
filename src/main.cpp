@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 int main() {
-  logSetLevel(LOG_LEVEL_ABSURD);
+  logSetLevel(LOG_LEVEL_ALLOC);
   MainApp app("Vulkan app");
 
   try {

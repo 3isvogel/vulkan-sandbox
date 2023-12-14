@@ -9,11 +9,11 @@
 class ImageView {
 public:
   void destroy();
-  ImageView &bind(SwapChain swapChain);
+  ImageView &bind(SwapChain &swapChain);
   ImageView &build();
   inline const std::vector<VkImageView> get() { return views; }
 
 private:
-  SwapChain swapChain;
+  SwapChain *swapChain;
   std::vector<VkImageView> views;
 };

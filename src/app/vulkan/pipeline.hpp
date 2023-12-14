@@ -1,4 +1,5 @@
 #pragma once
+#include "app/vulkan/logicaldevice.hpp"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <app/vulkan/renderpass.hpp>
@@ -17,20 +18,20 @@ public:
                              VkBool32 restartEnable = VK_FALSE);
   Pipeline &build();
   VkPipeline get() { return graphicsPipeline; }
-  inline RenderPass &getRenderPass() { return renderPass; }
+  inline RenderPass *getRenderPass() { return renderPass; }
   inline bool getDynamic() { return isDynamic; }
 
   static void setPath(const std::string &path) { basePath = path; }
 
 private:
   Pipeline &addDynamicState(VkDynamicState state);
-  VkShaderModule createShaderModule(const std::string &filename);
+  VkShaderModule createShaderModule(LogicalDevice *device,
+                                    const std::string &filename);
 
 private:
   bool isDynamic = false;
 
-  RenderPass renderPass;
-  LogicalDevice device;
+  RenderPass *renderPass;
 
   std::string fragShader = "";
   std::string vertShader = "";

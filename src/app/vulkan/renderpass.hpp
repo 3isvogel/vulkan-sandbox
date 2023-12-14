@@ -11,10 +11,10 @@ public:
   RenderPass &build();
   inline const VkRenderPass get() { return renderPass; }
   inline const VkRenderPassBeginInfo getInfo() { return info; }
-  inline SwapChain &getsSwapChain() { return swapChain; }
+  inline SwapChain *getsSwapChain() { return swapChain; }
 
 private:
-  SwapChain swapChain;
+  SwapChain *swapChain;
   VkRenderPass renderPass;
   VkRenderPassCreateInfo renderPassCreateInfo;
 

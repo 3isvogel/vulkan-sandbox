@@ -14,7 +14,7 @@ public:
   inline const VkFramebuffer get(uint32_t i) { return framebuffers[i]; }
 
 private:
-  RenderPass renderPass;
-  ImageView imageView;
+  RenderPass *renderPass;
+  ImageView *imageView;
   std::vector<VkFramebuffer> framebuffers;
 };

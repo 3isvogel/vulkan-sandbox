@@ -19,7 +19,7 @@ private:
     vkResetFences(device, 1, &inFlight.fence);
   }
   VkDevice device;
-  SwapChain swapChainRef;
+  SwapChain *swapChainRef;
   VkSwapchainKHR swapChain;
   VkQueue graphicsQueue;
   VkQueue presentQueue;

@@ -8,7 +8,6 @@
 
 class Instance {
 public:
-  Instance();
   void destroy();
   Instance &setName(const char *name);
   Instance &build();

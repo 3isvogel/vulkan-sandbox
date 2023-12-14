@@ -13,7 +13,7 @@
 
 class QueueFamily {
 public:
-  QueueFamily &bind(Surface &surface);
+  QueueFamily &bind(Surface *surface);
   QueueFamily &find(VkPhysicalDevice physicalDevice);
   bool isComplete();
   std::set<uint32_t> getIndeces();
@@ -22,7 +22,7 @@ private:
   std::vector<VkQueueFamilyProperties> query(VkPhysicalDevice device);
   std::vector<VkQueueFamilyProperties> queueFamilies;
 
-  Surface surface;
+  Surface *surface;
 
 public:
 #define X(name)                                                                \

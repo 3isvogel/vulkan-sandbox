@@ -11,7 +11,7 @@ public:
   PhysicalDevice &bind(Surface &surface);
 
   inline VkPhysicalDevice get() { return physicalDevice; }
-  inline Surface &getSurface() { return surface; }
+  inline Surface *getSurface() { return surface; }
   inline SwapChainSupportDetails getSupportDetails() {
     return querySwapChainSupport(physicalDevice);
   }
@@ -33,7 +33,7 @@ private:
   std::vector<const char *> deviceExtensions;
   VkPhysicalDeviceFeatures deviceFeatures{};
   VkPhysicalDevice physicalDevice;
-  Surface surface;
+  Surface *surface;
 
 private:
   static std::vector<const char *> enforcingExtensions;

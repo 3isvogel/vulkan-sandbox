@@ -20,7 +20,7 @@ void MainApp::initVulkan() {
   surface = Surface().setBase(instance, window).build();
   physicalDevice = PhysicalDevice().bind(surface);
   logicalDevice = LogicalDevice().bind(physicalDevice).build();
-  swapChain = SwapChain().connect(logicalDevice, window).build();
+  swapChain = SwapChain().connect(logicalDevice).build();
   imageView = ImageView().bind(swapChain).build();
   renderPass = RenderPass().bind(swapChain).build();
   Pipeline::setPath("shaders/");

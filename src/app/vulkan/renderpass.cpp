@@ -8,13 +8,13 @@ VkClearValue RenderPass::clear = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
 // I have no idea what is going on so i'll link it for later
 // https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/02_Graphics_pipeline_basics/03_Render_passes.html#_attachment_description
 RenderPass &RenderPass::bind(SwapChain &swapChain) {
-  this->swapChain = swapChain;
+  this->swapChain = &swapChain;
   pass;
 }
 
 RenderPass &RenderPass::build() {
   VkAttachmentDescription colorAttachment{
-      .format = swapChain.getFormat(),
+      .format = swapChain->getFormat(),
       .samples = VK_SAMPLE_COUNT_1_BIT,
       // TODO: allow more advanced selecting
       .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -52,7 +52,7 @@ RenderPass &RenderPass::build() {
                           .dependencyCount = 1,
                           .pDependencies = &dependency};
 
-  if (vkCreateRenderPass(swapChain.getDevice().get(), &renderPassCreateInfo,
+  if (vkCreateRenderPass(swapChain->getDevice()->get(), &renderPassCreateInfo,
                          nullptr, &renderPass) != VK_SUCCESS) {
     e_runtime("Failed to create render pass");
   }
@@ -60,14 +60,14 @@ RenderPass &RenderPass::build() {
 
   info = {.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
           .renderPass = renderPass,
-          .renderArea = {.offset = {0, 0}, .extent = swapChain.getExtent()},
+          .renderArea = {.offset = {0, 0}, .extent = swapChain->getExtent()},
           .clearValueCount = 1,
           .pClearValues = &clear};
   pass;
 };
 
 void RenderPass::destroy() {
-  vkDestroyRenderPass(swapChain.getDevice().get(), renderPass, nullptr);
+  vkDestroyRenderPass(swapChain->getDevice()->get(), renderPass, nullptr);
   logDebug("Render pass: destroyed");
 }
 

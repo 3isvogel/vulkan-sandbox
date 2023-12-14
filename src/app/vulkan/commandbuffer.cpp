@@ -19,19 +19,19 @@ CommandBuffer::CommandBuffer() {
 }
 
 CommandBuffer &CommandBuffer::bind(CommandPool &commandPool) {
-  this->commandPool = commandPool;
+  this->commandPool = &commandPool;
   allocInfo.commandPool = commandPool.get();
   pass;
 }
 
 CommandBuffer &CommandBuffer::bind(Pipeline &pipeline) {
-  this->pipeline = pipeline;
+  this->pipeline = &pipeline;
   dynamicStates = pipeline.getDynamic();
   pass;
 }
 
 CommandBuffer &CommandBuffer::build() {
-  if (vkAllocateCommandBuffers(commandPool.getDevice().get(), &allocInfo,
+  if (vkAllocateCommandBuffers(commandPool->getDevice()->get(), &allocInfo,
                                &commandBuffer) != VK_SUCCESS) {
     e_runtime("Failed to allocate command buffers");
   }
@@ -45,16 +45,16 @@ CommandBuffer &CommandBuffer::record(uint32_t bufferId) {
     e_runtime("Failed to begin recording command buffer");
   }
 
-  auto renderPass = pipeline.getRenderPass();
+  auto renderPass = pipeline->getRenderPass();
 
-  renderPass.setFramebuffer(framebuffer.get(bufferId));
+  renderPass->setFramebuffer(framebuffer->get(bufferId));
 
-  auto renderPassBeginInfo = renderPass.getInfo();
+  auto renderPassBeginInfo = renderPass->getInfo();
 
   vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo,
                        VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    pipeline.get());
+                    pipeline->get());
 
   if (dynamicStates) {
     updateDynamicStates(renderPass);
@@ -73,14 +73,14 @@ CommandBuffer &CommandBuffer::record(uint32_t bufferId) {
   pass;
 }
 
-void CommandBuffer::updateDynamicStates(RenderPass &renderPass) {
-  auto extent = renderPass.getsSwapChain().getExtent();
+void CommandBuffer::updateDynamicStates(RenderPass *renderPass) {
+  auto extent = renderPass->getsSwapChain()->getExtent();
   viewport.width = static_cast<float>(extent.width);
   viewport.height = static_cast<float>(extent.height);
   scissor.extent = extent;
 }
 
 CommandBuffer &CommandBuffer::attach(Framebuffer &framebuffer) {
-  this->framebuffer = framebuffer;
+  this->framebuffer = &framebuffer;
   pass;
 }

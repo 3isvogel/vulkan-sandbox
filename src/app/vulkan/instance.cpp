@@ -1,7 +1,7 @@
+#include "app/vulkan/validation/debugger.hpp"
+#include "lib/log.hpp"
 #include <app/vulkan/instance.hpp>
 #include <app/vulkan/validation/callbacks.hpp>
-
-Instance::Instance() {}
 
 Instance &Instance::setName(const char *name) {
   this->name = name;

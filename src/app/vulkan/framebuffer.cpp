@@ -5,29 +5,29 @@
 
 Framebuffer &Framebuffer::setBase(ImageView &imageView,
                                   RenderPass &renderPass) {
-  this->renderPass = renderPass;
-  this->imageView = imageView;
+  this->renderPass = &renderPass;
+  this->imageView = &imageView;
   pass;
 }
 
 Framebuffer &Framebuffer::build() {
-  auto imageViews = imageView.get();
-  auto swapChain = renderPass.getsSwapChain();
-  framebuffers.resize(imageView.get().size());
+  auto imageViews = imageView->get();
+  auto swapChain = renderPass->getsSwapChain();
+  framebuffers.resize(imageView->get().size());
 
   size_t i = 0;
-  for (; i < imageView.get().size(); i++) {
+  for (; i < imageView->get().size(); i++) {
     VkImageView attachments[] = {imageViews[i]};
 
     VkFramebufferCreateInfo framebufferInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .renderPass = renderPass.get(),
+        .renderPass = renderPass->get(),
         .attachmentCount = 1,
         .pAttachments = attachments,
-        .width = swapChain.getExtent().width,
-        .height = swapChain.getExtent().height,
+        .width = swapChain->getExtent().width,
+        .height = swapChain->getExtent().height,
         .layers = 1};
-    if (vkCreateFramebuffer(swapChain.getDevice().get(), &framebufferInfo,
+    if (vkCreateFramebuffer(swapChain->getDevice()->get(), &framebufferInfo,
                             nullptr, &framebuffers[i]) != VK_SUCCESS) {
       e_runtime("Failed to create framebuffer");
     }
@@ -37,7 +37,7 @@ Framebuffer &Framebuffer::build() {
 }
 
 void Framebuffer::destroy() {
-  auto device = renderPass.getsSwapChain().getDevice().get();
+  auto device = renderPass->getsSwapChain()->getDevice()->get();
   for (auto framebuffer : framebuffers)
     vkDestroyFramebuffer(device, framebuffer, nullptr);
   logDebug("Framebuffers: destroyed");
