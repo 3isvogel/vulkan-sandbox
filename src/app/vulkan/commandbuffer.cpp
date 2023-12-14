@@ -45,8 +45,6 @@ CommandBuffer &CommandBuffer::record(uint32_t bufferId) {
     e_runtime("Failed to begin recording command buffer");
   }
 
-  VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 0.0f}}};
-
   auto renderPass = pipeline.getRenderPass();
 
   renderPass.setFramebuffer(framebuffer.get(bufferId));

@@ -3,7 +3,7 @@
 #include <app/vulkan/renderpass.hpp>
 #include <lib/log.hpp>
 
-RenderPass::RenderPass() = default;
+VkClearValue RenderPass::clear = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
 
 // I have no idea what is going on so i'll link it for later
 // https://docs.vulkan.org/tutorial/latest/03_Drawing_a_triangle/02_Graphics_pipeline_basics/03_Render_passes.html#_attachment_description
@@ -58,16 +58,13 @@ RenderPass &RenderPass::build() {
   }
   logDebug("Render pass: created");
 
-  info = {
-      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-      .renderPass = renderPass,
-      .renderArea = {.offset = {0, 0}, .extent = swapChain.getExtent()},
-      // What to use when defined (VK_ATTACHMENT_LOAD_OP_CLEAR) to clear screen
-      .clearValueCount = 1,
-      .pClearValues = &clear};
-
+  info = {.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+          .renderPass = renderPass,
+          .renderArea = {.offset = {0, 0}, .extent = swapChain.getExtent()},
+          .clearValueCount = 1,
+          .pClearValues = &clear};
   pass;
-}
+};
 
 void RenderPass::destroy() {
   vkDestroyRenderPass(swapChain.getDevice().get(), renderPass, nullptr);
@@ -76,9 +73,4 @@ void RenderPass::destroy() {
 
 void RenderPass::setFramebuffer(VkFramebuffer frameBuffer) {
   info.framebuffer = frameBuffer;
-}
-
-RenderPass &RenderPass::setClearValue(VkClearValue clearValue) {
-  clear = clearValue;
-  pass;
 }
