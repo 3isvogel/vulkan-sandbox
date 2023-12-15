@@ -36,7 +36,6 @@ private:
   LogicalDevice logicalDevice;
   Sync sync;
   SwapChain swapChain;
-  ImageView imageView;
   Framebuffer framebuffer;
   CommandPool commandPool;
   CommandBuffer commandBuffer;

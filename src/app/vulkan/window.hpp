@@ -12,5 +12,5 @@ public:
   inline bool running() { return !glfwWindowShouldClose(window); }
 
 private:
-  GLFWwindow *window;
+  GLFWwindow *window = nullptr;
 };

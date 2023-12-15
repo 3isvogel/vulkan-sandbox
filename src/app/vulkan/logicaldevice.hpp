@@ -18,7 +18,10 @@ public:
   inline void waitIdle() { vkDeviceWaitIdle(device); }
 
 private:
+  void check();
+
+private:
   VkDevice device;
-  PhysicalDevice *physicalDevice;
+  PhysicalDevice *physicalDevice = nullptr;
   QueueFamily queues;
 };

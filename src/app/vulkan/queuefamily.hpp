@@ -1,10 +1,8 @@
 #pragma once
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-#include <app/vulkan/physicaldevice.hpp>
 #include <app/vulkan/surface.hpp>
 #include <optional>
 #include <set>
+#include <vulkan/vulkan_core.h>
 
 // MF managed to put X macro inside his code
 #define FAMILIES_LIST                                                          \
@@ -19,10 +17,13 @@ public:
   std::set<uint32_t> getIndeces();
 
 private:
+  void check();
+
+private:
   std::vector<VkQueueFamilyProperties> query(VkPhysicalDevice device);
   std::vector<VkQueueFamilyProperties> queueFamilies;
 
-  Surface *surface;
+  Surface *surface = nullptr;
 
 public:
 #define X(name)                                                                \

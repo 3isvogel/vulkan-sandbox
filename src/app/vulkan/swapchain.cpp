@@ -1,3 +1,4 @@
+#include "lib/macros.hpp"
 #include <app/vulkan/logicaldevice.hpp>
 #include <app/vulkan/queuefamily.hpp>
 #include <app/vulkan/swapchain.hpp>
@@ -123,4 +124,9 @@ SwapChain &SwapChain::build() {
 void SwapChain::destroy() {
   vkDestroySwapchainKHR(device->get(), swapChain, nullptr);
   logDebug("SwapChain: destroyed");
+}
+
+void SwapChain::check() {
+  if (!device)
+    runtime_dep(SwapChain, LogicalDevice);
 }

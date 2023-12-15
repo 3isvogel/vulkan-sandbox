@@ -1,3 +1,4 @@
+#include "lib/macros.hpp"
 #include <app/vulkan/swapchain.hpp>
 #include <app/vulkan/sync.hpp>
 #include <lib/log.hpp>
@@ -5,6 +6,7 @@
 #include <vulkan/vulkan_core.h>
 
 Sync &Sync::build() {
+  check();
 
   swapChain = swapChainRef->get();
   device = swapChainRef->getDevice()->get();
@@ -34,7 +36,6 @@ Sync &Sync::build() {
 
 Sync &Sync::connect(SwapChain &swapChain) {
   this->swapChainRef = &swapChain;
-
   return *this;
 }
 
@@ -87,4 +88,10 @@ void Sync::present(uint32_t &imageIndex) {
                                .pImageIndices = &imageIndex};
 
   vkQueuePresentKHR(presentQueue, &presentInfo);
+}
+
+void Sync::check() {
+  if (!swapChainRef) {
+    runtime_dep(Sync, SwapChain);
+  }
 }

@@ -1,12 +1,8 @@
 #pragma once
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 #include <app/vulkan/additional_types.hpp>
 #include <app/vulkan/logicaldevice.hpp>
-#include <app/vulkan/physicaldevice.hpp>
-#include <app/vulkan/surface.hpp>
-#include <app/vulkan/window.hpp>
 #include <vector>
+#include <vulkan/vulkan_core.h>
 
 // #define ADDITIONAL_SWAPCHAIN_IMAGES 1
 
@@ -26,6 +22,8 @@ public:
   inline const VkExtent2D getExtent() { return extent; }
 
 private:
+  void check();
+
   VkSurfaceFormatKHR bestFormat();
   VkPresentModeKHR bestPresentMode();
   VkExtent2D bestExtent();
@@ -37,7 +35,7 @@ private:
   VkExtent2D extent;
   SwapChainSupportDetails supportDetails;
 
-  LogicalDevice *device;
+  LogicalDevice *device = nullptr;
 
   bool tripleBuffering = false;
 };

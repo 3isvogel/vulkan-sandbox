@@ -13,6 +13,9 @@ public:
   inline LogicalDevice *getDevice() { return device; }
 
 private:
-  LogicalDevice *device;
+  void check();
+
+private:
+  LogicalDevice *device = nullptr;
   VkCommandPool commandPool;
 };

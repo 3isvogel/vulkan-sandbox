@@ -1,22 +1,22 @@
 #include "app/vulkan/renderpass.hpp"
+#include "app/vulkan/swapchain.hpp"
 #include "vulkan/vulkan_core.h"
 #include <app/vulkan/framebuffer.hpp>
 #include <app/vulkan/imageview.hpp>
 
-Framebuffer &Framebuffer::setBase(ImageView &imageView,
-                                  RenderPass &renderPass) {
+Framebuffer &Framebuffer::bind(RenderPass &renderPass) {
   this->renderPass = &renderPass;
-  this->imageView = &imageView;
   pass;
 }
 
 Framebuffer &Framebuffer::build() {
-  auto imageViews = imageView->get();
   auto swapChain = renderPass->getsSwapChain();
-  framebuffers.resize(imageView->get().size());
+  imageView.bind(swapChain).build();
+  auto imageViews = imageView.get();
+  framebuffers.resize(imageViews.size());
 
   size_t i = 0;
-  for (; i < imageView->get().size(); i++) {
+  for (; i < imageViews.size(); i++) {
     VkImageView attachments[] = {imageViews[i]};
 
     VkFramebufferCreateInfo framebufferInfo{
@@ -41,4 +41,5 @@ void Framebuffer::destroy() {
   for (auto framebuffer : framebuffers)
     vkDestroyFramebuffer(device, framebuffer, nullptr);
   logDebug("Framebuffers: destroyed");
+  imageView.destroy();
 }

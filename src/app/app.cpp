@@ -18,10 +18,10 @@ void MainApp::run() {
 void MainApp::initVulkan() {
   instance = Instance().setName(name.c_str()).build();
   surface = Surface().setBase(instance, window).build();
+  // TODO: bind logical to surface directly
   physicalDevice = PhysicalDevice().bind(surface);
   logicalDevice = LogicalDevice().bind(physicalDevice).build();
   swapChain = SwapChain().connect(logicalDevice).build();
-  imageView = ImageView().bind(swapChain).build();
   renderPass = RenderPass().bind(swapChain).build();
   Pipeline::setPath("shaders/");
   pipeline = Pipeline()
@@ -31,7 +31,7 @@ void MainApp::initVulkan() {
                  .setVertStage("triangleVert.spv")
                  .setFragStage("triangleFrag.spv")
                  .build();
-  framebuffer = Framebuffer().setBase(imageView, renderPass).build();
+  framebuffer = Framebuffer().bind(renderPass).build();
   commandPool = CommandPool().bind(logicalDevice).build();
   commandBuffer = CommandBuffer()
                       .bind(pipeline)
@@ -60,7 +60,6 @@ void MainApp::cleanup() {
   framebuffer.destroy();
   pipeline.destroy();
   renderPass.destroy();
-  imageView.destroy();
   swapChain.destroy();
   logicalDevice.destroy();
   surface.destroy();

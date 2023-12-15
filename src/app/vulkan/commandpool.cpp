@@ -1,5 +1,6 @@
 #include "app/vulkan/logicaldevice.hpp"
 #include "app/vulkan/queuefamily.hpp"
+#include "lib/macros.hpp"
 #include <app/vulkan/commandpool.hpp>
 
 CommandPool &CommandPool::bind(LogicalDevice &device) {
@@ -8,6 +9,7 @@ CommandPool &CommandPool::bind(LogicalDevice &device) {
 }
 
 CommandPool &CommandPool::build() {
+  check();
   QueueFamily queueFamilyIndices =
       QueueFamily()
           .bind(device->getPhysicalDevice()->getSurface())
@@ -29,4 +31,9 @@ CommandPool &CommandPool::build() {
 void CommandPool::destroy() {
   vkDestroyCommandPool(device->get(), commandPool, nullptr);
   logDebug("Command pool: destroyed");
+}
+
+void CommandPool::check() {
+  if (!device)
+    runtime_dep(CommandPool, LogicalDevice);
 }

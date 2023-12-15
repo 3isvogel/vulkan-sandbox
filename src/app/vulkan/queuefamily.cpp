@@ -1,3 +1,4 @@
+#include "lib/macros.hpp"
 #include <app/vulkan/physicaldevice.hpp>
 #include <app/vulkan/queuefamily.hpp>
 #include <app/vulkan/surface.hpp>
@@ -54,4 +55,9 @@ std::set<uint32_t> QueueFamily::getIndeces() {
   std::set<uint32_t> uniqueQueueFamilies = {FAMILIES_LIST};
 #undef X
   return uniqueQueueFamilies;
+}
+
+void QueueFamily::check() {
+  if (!surface)
+    runtime_dep(QueueFamily, Surface);
 }

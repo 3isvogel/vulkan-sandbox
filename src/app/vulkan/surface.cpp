@@ -1,7 +1,6 @@
 #include "app/vulkan/instance.hpp"
+#include "lib/macros.hpp"
 #include <app/vulkan/surface.hpp>
-
-Surface::Surface() {}
 
 Surface &Surface::setBase(Instance &instance, Window &window) {
   this->instance = &instance;
@@ -10,6 +9,7 @@ Surface &Surface::setBase(Instance &instance, Window &window) {
 }
 
 Surface &Surface::build() {
+  check();
   auto result = glfwCreateWindowSurface(instance->get(), window->get(), nullptr,
                                         &surface);
   if (result != VK_SUCCESS) {
@@ -23,4 +23,11 @@ Surface &Surface::build() {
 void Surface::destroy() {
   vkDestroySurfaceKHR(instance->get(), surface, nullptr);
   logDebug("GLFW surface: destroyed");
+}
+
+void Surface::check() {
+  if (!instance)
+    runtime_dep(Surface, Instance);
+  if (!window)
+    runtime_dep(Surface, Window);
 }

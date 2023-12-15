@@ -1,7 +1,6 @@
 #pragma once
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 #include <app/vulkan/swapchain.hpp>
+#include <vulkan/vulkan_core.h>
 
 class RenderPass {
 public:
@@ -14,7 +13,10 @@ public:
   inline SwapChain *getsSwapChain() { return swapChain; }
 
 private:
-  SwapChain *swapChain;
+  void check();
+
+private:
+  SwapChain *swapChain = nullptr;
   VkRenderPass renderPass;
   VkRenderPassCreateInfo renderPassCreateInfo;
 

@@ -1,4 +1,5 @@
 #include "app/vulkan/swapchain.hpp"
+#include "lib/macros.hpp"
 #include "vulkan/vulkan_core.h"
 #include <app/vulkan/renderpass.hpp>
 #include <lib/log.hpp>
@@ -13,6 +14,7 @@ RenderPass &RenderPass::bind(SwapChain &swapChain) {
 }
 
 RenderPass &RenderPass::build() {
+  check();
   VkAttachmentDescription colorAttachment{
       .format = swapChain->getFormat(),
       .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -73,4 +75,9 @@ void RenderPass::destroy() {
 
 void RenderPass::setFramebuffer(VkFramebuffer frameBuffer) {
   info.framebuffer = frameBuffer;
+}
+
+void RenderPass::check() {
+  if (!swapChain)
+    runtime_dep(SwapChain, RenderPass);
 }

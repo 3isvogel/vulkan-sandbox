@@ -1,10 +1,9 @@
 #pragma once
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+// TODO: Should move SwapChainSupportDetails up
 #include <app/vulkan/additional_types.hpp>
-#include <app/vulkan/instance.hpp>
 #include <app/vulkan/surface.hpp>
 #include <vector>
+#include <vulkan/vulkan_core.h>
 
 class PhysicalDevice {
 public:
@@ -23,17 +22,16 @@ public:
 private:
   void enforceExtensionsRequirements();
   SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
-
-private:
   bool isDeviceSuitable(VkPhysicalDevice physicalDevice);
   bool checkExtensionSupport(VkPhysicalDevice physicalDevice);
   std::vector<VkExtensionProperties>
   queryExtensionProperties(VkPhysicalDevice physicalDevice);
 
+private:
   std::vector<const char *> deviceExtensions;
   VkPhysicalDeviceFeatures deviceFeatures{};
   VkPhysicalDevice physicalDevice;
-  Surface *surface;
+  Surface *surface = nullptr;
 
 private:
   static std::vector<const char *> enforcingExtensions;

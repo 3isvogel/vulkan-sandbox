@@ -2,8 +2,8 @@
 #include <app/vulkan/swapchain.hpp>
 #include <lib/log.hpp>
 
-ImageView &ImageView::bind(SwapChain &swapChain) {
-  this->swapChain = &swapChain;
+ImageView &ImageView::bind(SwapChain *swapChain) {
+  this->swapChain = swapChain;
   pass;
 }
 

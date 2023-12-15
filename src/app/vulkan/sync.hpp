@@ -1,9 +1,9 @@
 #pragma once
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 #include <app/vulkan/swapchain.hpp>
 #include <cstdint>
+#include <vulkan/vulkan_core.h>
 
+// FIXME: May want to make sync a swapchain element
 class Sync {
 public:
   void destroy();
@@ -14,12 +14,13 @@ public:
   void present(uint32_t &imageIndex);
 
 private:
+  void check();
   inline void inflightWaitAndReset() {
     vkWaitForFences(device, 1, &inFlight.fence, VK_TRUE, inFlight.timeout);
     vkResetFences(device, 1, &inFlight.fence);
   }
   VkDevice device;
-  SwapChain *swapChainRef;
+  SwapChain *swapChainRef = nullptr;
   VkSwapchainKHR swapChain;
   VkQueue graphicsQueue;
   VkQueue presentQueue;

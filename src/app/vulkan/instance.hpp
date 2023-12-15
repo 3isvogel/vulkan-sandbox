@@ -1,6 +1,4 @@
 #pragma once
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 #include <app/vulkan/validation/debugger.hpp>
 #include <string>
 #include <vector>
@@ -12,6 +10,9 @@ public:
   Instance &setName(const char *name);
   Instance &build();
   inline VkInstance const get() { return instance; }
+
+private:
+  void check();
 
 private:
   std::string name;

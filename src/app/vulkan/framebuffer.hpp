@@ -9,12 +9,12 @@
 class Framebuffer {
 public:
   void destroy();
-  Framebuffer &setBase(ImageView &imageView, RenderPass &renderPass);
+  Framebuffer &bind(RenderPass &renderPass);
   Framebuffer &build();
   inline const VkFramebuffer get(uint32_t i) { return framebuffers[i]; }
 
 private:
   RenderPass *renderPass;
-  ImageView *imageView;
+  ImageView imageView;
   std::vector<VkFramebuffer> framebuffers;
 };

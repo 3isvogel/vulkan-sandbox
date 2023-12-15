@@ -1,3 +1,4 @@
+#include "lib/macros.hpp"
 #include <app/vulkan/commandbuffer.hpp>
 #include <lib/log.hpp>
 #include <stdexcept>
@@ -31,6 +32,7 @@ CommandBuffer &CommandBuffer::bind(Pipeline &pipeline) {
 }
 
 CommandBuffer &CommandBuffer::build() {
+  check();
   if (vkAllocateCommandBuffers(commandPool->getDevice()->get(), &allocInfo,
                                &commandBuffer) != VK_SUCCESS) {
     e_runtime("Failed to allocate command buffers");
@@ -83,4 +85,13 @@ void CommandBuffer::updateDynamicStates(RenderPass *renderPass) {
 CommandBuffer &CommandBuffer::attach(Framebuffer &framebuffer) {
   this->framebuffer = &framebuffer;
   pass;
+}
+
+void CommandBuffer::check() {
+  if (!commandPool)
+    runtime_dep(CommandBuffer, CommandPool);
+  if (!pipeline)
+    runtime_dep(CommandBuffer, Pipeline);
+  if (!framebuffer)
+    runtime_dep(CommandBuffer, Framebuffer);
 }
