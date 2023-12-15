@@ -1,3 +1,5 @@
+#include "app/vulkan/renderpass.hpp"
+#include "app/vulkan/swapchain.hpp"
 #include "lib/macros.hpp"
 #include <app/vulkan/commandbuffer.hpp>
 #include <lib/log.hpp>
@@ -33,50 +35,62 @@ CommandBuffer &CommandBuffer::bind(Pipeline &pipeline) {
 
 CommandBuffer &CommandBuffer::build() {
   check();
-  if (vkAllocateCommandBuffers(commandPool->getDevice()->get(), &allocInfo,
-                               &commandBuffer) != VK_SUCCESS) {
+  auto swapChain = pipeline->getRenderPass()->getSwapChain();
+  auto device = swapChain->getDevice();
+  auto queues = device->getQueue();
+
+  sync.bind(device->get())
+      .bind(swapChain->get())
+      .bind(device->getQueue()->graphicsQueue,
+            device->getQueue()->presentQueue);
+
+  commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+  allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
+  if (vkAllocateCommandBuffers(device->get(), &allocInfo,
+                               commandBuffers.data()) != VK_SUCCESS) {
     e_runtime("Failed to allocate command buffers");
   }
   logDebug("Command buffers: allocated");
+  sync.build();
   pass;
 }
 
-CommandBuffer &CommandBuffer::record(uint32_t bufferId) {
+void CommandBuffer::record() {
 
-  if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+  if (vkBeginCommandBuffer(commandBuffers[currentImage], &beginInfo) !=
+      VK_SUCCESS) {
     e_runtime("Failed to begin recording command buffer");
   }
 
   auto renderPass = pipeline->getRenderPass();
 
-  renderPass->setFramebuffer(framebuffer->get(bufferId));
+  renderPass->setFramebuffer(framebuffer->get(currentImage));
 
   auto renderPassBeginInfo = renderPass->getInfo();
 
-  vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo,
+  vkCmdBeginRenderPass(commandBuffers[currentImage], &renderPassBeginInfo,
                        VK_SUBPASS_CONTENTS_INLINE);
-  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    pipeline->get());
+  vkCmdBindPipeline(commandBuffers[currentImage],
+                    VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->get());
 
   if (dynamicStates) {
     updateDynamicStates(renderPass);
   }
 
-  vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-  vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+  vkCmdSetViewport(commandBuffers[currentImage], 0, 1, &viewport);
+  vkCmdSetScissor(commandBuffers[currentImage], 0, 1, &scissor);
 
-  vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+  vkCmdDraw(commandBuffers[currentImage], 3, 1, 0, 0);
 
-  vkCmdEndRenderPass(commandBuffer);
+  vkCmdEndRenderPass(commandBuffers[currentImage]);
 
-  if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+  if (vkEndCommandBuffer(commandBuffers[currentImage]) != VK_SUCCESS) {
     e_runtime("Failed to record command buffer");
   }
-  pass;
 }
 
 void CommandBuffer::updateDynamicStates(RenderPass *renderPass) {
-  auto extent = renderPass->getsSwapChain()->getExtent();
+  auto extent = renderPass->getSwapChain()->getExtent();
   viewport.width = static_cast<float>(extent.width);
   viewport.height = static_cast<float>(extent.height);
   scissor.extent = extent;
@@ -95,3 +109,5 @@ void CommandBuffer::check() {
   if (!framebuffer)
     runtime_dep(CommandBuffer, Framebuffer);
 }
+
+void CommandBuffer::close() { sync.destroy(); }

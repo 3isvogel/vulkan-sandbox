@@ -1,8 +1,8 @@
 #pragma once
-#include "app/vulkan/commandbuffer.hpp"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <app/vulkan/commandbuffer.hpp>
 #include <app/vulkan/framebuffer.hpp>
 #include <app/vulkan/imageview.hpp>
 #include <app/vulkan/instance.hpp>
@@ -13,7 +13,6 @@
 #include <app/vulkan/renderpass.hpp>
 #include <app/vulkan/surface.hpp>
 #include <app/vulkan/swapchain.hpp>
-#include <app/vulkan/sync.hpp>
 #include <app/vulkan/window.hpp>
 #include <vector>
 
@@ -34,7 +33,6 @@ private:
   Surface surface;
   PhysicalDevice physicalDevice;
   LogicalDevice logicalDevice;
-  Sync sync;
   SwapChain swapChain;
   Framebuffer framebuffer;
   CommandPool commandPool;

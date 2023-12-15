@@ -1,23 +1,28 @@
 #pragma once
-#include "app/vulkan/framebuffer.hpp"
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+#include "app/vulkan/swapchain.hpp"
 #include <app/vulkan/commandpool.hpp>
+#include <app/vulkan/framebuffer.hpp>
 #include <app/vulkan/pipeline.hpp>
+#include <app/vulkan/sync.hpp>
+#include <vulkan/vulkan_core.h>
 
 class CommandBuffer {
 public:
   CommandBuffer();
-  void destroy();
   CommandBuffer &build();
+  void close();
   CommandBuffer &bind(CommandPool &commandPool);
   CommandBuffer &bind(Pipeline &pipeline);
   CommandBuffer &attach(Framebuffer &framebuffer);
-  CommandBuffer &record(uint32_t bufferIdx);
-  inline const VkCommandBuffer get() { return commandBuffer; }
-  inline CommandBuffer &reset() {
-    vkResetCommandBuffer(commandBuffer, 0);
-    pass;
+  void record();
+  inline void reset() { vkResetCommandBuffer(commandBuffers[currentImage], 0); }
+  inline void submitCommand() {
+    sync.submitCommand(commandBuffers[CURRENT_FRAME]);
+  }
+  inline void acquireNextImage() { sync.acquireNextImage(currentImage); }
+  inline void present() {
+    sync.present(currentImage);
+    CURRENT_FRAME = (currentImage + 1) % MAX_FRAMES_IN_FLIGHT;
   }
 
 private:
@@ -28,8 +33,9 @@ private:
   CommandPool *commandPool = nullptr;
   Pipeline *pipeline = nullptr;
   Framebuffer *framebuffer = nullptr;
+  Sync sync;
 
-  VkCommandBuffer commandBuffer;
+  std::vector<VkCommandBuffer> commandBuffers;
   VkCommandBufferAllocateInfo allocInfo;
   VkCommandBufferBeginInfo beginInfo;
 
@@ -37,4 +43,5 @@ private:
   VkRect2D scissor;
 
   bool dynamicStates = false;
+  uint32_t currentImage;
 };

@@ -131,7 +131,7 @@ Pipeline &Pipeline::setFragStage(const std::string &filename) {
 }
 
 void Pipeline::destroy() {
-  auto device = renderPass->getsSwapChain()->getDevice();
+  auto device = renderPass->getSwapChain()->getDevice();
   vkDestroyPipeline(device->get(), graphicsPipeline, nullptr);
   vkDestroyPipelineLayout(device->get(), pipelineLayout, nullptr);
   logDebug("Pipeline: destroyed");
@@ -183,7 +183,7 @@ Pipeline &Pipeline::setInputAssembly(VkPrimitiveTopology topology,
 
 Pipeline &Pipeline::build() {
 
-  auto device = renderPass->getsSwapChain()->getDevice();
+  auto device = renderPass->getSwapChain()->getDevice();
 
   VkPipelineLayoutCreateInfo pipelineLayoutInfo{
       .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,

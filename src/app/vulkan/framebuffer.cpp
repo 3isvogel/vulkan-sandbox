@@ -10,7 +10,7 @@ Framebuffer &Framebuffer::bind(RenderPass &renderPass) {
 }
 
 Framebuffer &Framebuffer::build() {
-  auto swapChain = renderPass->getsSwapChain();
+  auto swapChain = renderPass->getSwapChain();
   imageView.bind(swapChain).build();
   auto imageViews = imageView.get();
   framebuffers.resize(imageViews.size());
@@ -37,7 +37,7 @@ Framebuffer &Framebuffer::build() {
 }
 
 void Framebuffer::destroy() {
-  auto device = renderPass->getsSwapChain()->getDevice()->get();
+  auto device = renderPass->getSwapChain()->getDevice()->get();
   for (auto framebuffer : framebuffers)
     vkDestroyFramebuffer(device, framebuffer, nullptr);
   logDebug("Framebuffers: destroyed");

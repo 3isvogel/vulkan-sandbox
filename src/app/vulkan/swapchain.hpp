@@ -5,6 +5,7 @@
 #include <vulkan/vulkan_core.h>
 
 // #define ADDITIONAL_SWAPCHAIN_IMAGES 1
+// TODO: move these in a better place
 
 class SwapChain {
 public:

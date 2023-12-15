@@ -11,7 +11,8 @@ public:
   void destroy();
   Framebuffer &bind(RenderPass &renderPass);
   Framebuffer &build();
-  inline const VkFramebuffer get(uint32_t i) { return framebuffers[i]; }
+  inline const VkFramebuffer get(uint32_t &i) { return framebuffers[i]; }
+  inline RenderPass *getRenderPass() { return renderPass; }
 
 private:
   RenderPass *renderPass;

@@ -1,13 +1,17 @@
 #pragma once
-#include <app/vulkan/swapchain.hpp>
-#include <cstdint>
+#include <vector>
 #include <vulkan/vulkan_core.h>
+
+extern uint32_t CURRENT_FRAME;
+extern const uint32_t MAX_FRAMES_IN_FLIGHT;
 
 // FIXME: May want to make sync a swapchain element
 class Sync {
 public:
   void destroy();
-  Sync &connect(SwapChain &swapChain);
+  Sync &bind(VkSwapchainKHR swapChain);
+  Sync &bind(VkDevice device);
+  Sync &bind(VkQueue graphicsQueue, VkQueue presentQueue);
   Sync &build();
   void acquireNextImage(uint32_t &imageIndex);
   void submitCommand(VkCommandBuffer commandBuffer);
@@ -15,23 +19,19 @@ public:
 
 private:
   void check();
-  inline void inflightWaitAndReset() {
-    vkWaitForFences(device, 1, &inFlight.fence, VK_TRUE, inFlight.timeout);
-    vkResetFences(device, 1, &inFlight.fence);
-  }
-  VkDevice device;
-  SwapChain *swapChainRef = nullptr;
-  VkSwapchainKHR swapChain;
-  VkQueue graphicsQueue;
-  VkQueue presentQueue;
+  void inflightWaitAndReset();
+  VkDevice device = nullptr;
+  VkSwapchainKHR swapChain = nullptr;
+  VkQueue graphicsQueue = nullptr;
+  VkQueue presentQueue = nullptr;
 
   struct {
-    VkSemaphore semaphore;
+    std::vector<VkSemaphore> semaphores;
     uint64_t timeout = UINT64_MAX;
   } imageAvailable, renderFinished;
 
   struct {
-    VkFence fence;
+    std::vector<VkFence> fences;
     uint64_t timeout = UINT64_MAX;
   } inFlight;
 };

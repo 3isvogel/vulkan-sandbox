@@ -38,7 +38,6 @@ void MainApp::initVulkan() {
                       .bind(commandPool)
                       .attach(framebuffer)
                       .build();
-  sync = Sync().connect(swapChain).build();
 }
 
 void MainApp::mainLoop() {
@@ -55,7 +54,7 @@ void MainApp::mainLoop() {
 }
 
 void MainApp::cleanup() {
-  sync.destroy();
+  commandBuffer.close();
   commandPool.destroy();
   framebuffer.destroy();
   pipeline.destroy();
@@ -68,12 +67,11 @@ void MainApp::cleanup() {
 }
 
 void MainApp::drawFrame() {
-  uint32_t imageIndex;
-  sync.acquireNextImage(imageIndex);
+  commandBuffer.acquireNextImage();
 
   commandBuffer.reset();
-  commandBuffer.record(imageIndex);
+  commandBuffer.record();
 
-  sync.submitCommand(commandBuffer.get());
-  sync.present(imageIndex);
+  commandBuffer.submitCommand();
+  commandBuffer.present();
 }
