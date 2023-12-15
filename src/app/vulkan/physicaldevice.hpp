@@ -7,7 +7,7 @@
 
 class PhysicalDevice {
 public:
-  PhysicalDevice &bind(Surface &surface);
+  PhysicalDevice &bind(Surface *surface);
 
   inline VkPhysicalDevice get() { return physicalDevice; }
   inline Surface *getSurface() { return surface; }

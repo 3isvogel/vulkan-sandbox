@@ -5,9 +5,9 @@
 class RenderPass {
 public:
   void destroy();
+  RenderPass &build();
   RenderPass &bind(SwapChain &swapChain);
   void setFramebuffer(VkFramebuffer frameBuffer);
-  RenderPass &build();
   inline const VkRenderPass get() { return renderPass; }
   inline const VkRenderPassBeginInfo getInfo() { return info; }
   inline SwapChain *getSwapChain() { return swapChain; }

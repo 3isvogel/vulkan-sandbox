@@ -10,10 +10,9 @@ CommandPool &CommandPool::bind(LogicalDevice &device) {
 
 CommandPool &CommandPool::build() {
   check();
-  QueueFamily queueFamilyIndices =
-      QueueFamily()
-          .bind(device->getPhysicalDevice()->getSurface())
-          .find(device->getPhysicalDevice()->get());
+  QueueFamily queueFamilyIndices = QueueFamily()
+                                       .bind(device->getSurface())
+                                       .find(device->getPhysicalDevice());
 
   VkCommandPoolCreateInfo poolInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,

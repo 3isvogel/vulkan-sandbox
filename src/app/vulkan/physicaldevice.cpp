@@ -1,14 +1,12 @@
-#include "app/vulkan/surface.hpp"
-#include "lib/macros.hpp"
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 #include <app/vulkan/instance.hpp>
 #include <app/vulkan/physicaldevice.hpp>
 #include <app/vulkan/queuefamily.hpp>
+#include <app/vulkan/surface.hpp>
 #include <lib/log.hpp>
 #include <set>
 #include <string>
 #include <vector>
+#include <vulkan/vulkan_core.h>
 
 // TODO: move this
 #define DEVICE_EXTENSIONS_LIST X(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
@@ -16,9 +14,9 @@
 std::vector<const char *> PhysicalDevice::enforcingExtensions = {
     "VK_KHR_portability_subset"};
 
-PhysicalDevice &PhysicalDevice::bind(Surface &surface) {
-  this->surface = &surface;
-  auto instance = surface.getInstance();
+PhysicalDevice &PhysicalDevice::bind(Surface *surface) {
+  this->surface = surface;
+  auto instance = surface->getInstance();
 
 #define X(name) deviceExtensions.push_back(name);
   DEVICE_EXTENSIONS_LIST

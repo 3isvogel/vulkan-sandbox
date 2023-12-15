@@ -18,9 +18,7 @@ void MainApp::run() {
 void MainApp::initVulkan() {
   instance = Instance().setName(name.c_str()).build();
   surface = Surface().setBase(instance, window).build();
-  // TODO: bind logical to surface directly
-  physicalDevice = PhysicalDevice().bind(surface);
-  logicalDevice = LogicalDevice().bind(physicalDevice).build();
+  logicalDevice = LogicalDevice().bind(surface).build();
   swapChain = SwapChain().connect(logicalDevice).build();
   renderPass = RenderPass().bind(swapChain).build();
   Pipeline::setPath("shaders/");

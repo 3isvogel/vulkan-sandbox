@@ -41,7 +41,7 @@ VkExtent2D SwapChain::bestExtent() {
     return supportDetails.capabilities.currentExtent;
   } else {
     int width, height;
-    auto window = device->getPhysicalDevice()->getSurface()->getWindow();
+    auto window = device->getSurface()->getWindow();
     glfwGetFramebufferSize(window->get(), &width, &height);
 
     VkExtent2D actualExtent = {static_cast<uint32_t>(width),
@@ -60,10 +60,9 @@ VkExtent2D SwapChain::bestExtent() {
 
 SwapChain &SwapChain::build() {
 
-  supportDetails = device->getPhysicalDevice()->getSupportDetails();
+  supportDetails = device->getSupportDetails();
 
-  auto physicalDevice = device->getPhysicalDevice();
-  auto surface = physicalDevice->getSurface();
+  auto surface = device->getSurface();
 
   VkSurfaceFormatKHR surfaceFormat = bestFormat();
   VkPresentModeKHR presentMode = bestPresentMode();
@@ -97,7 +96,8 @@ SwapChain &SwapChain::build() {
       .queueFamilyIndexCount = 0,
       .pQueueFamilyIndices = nullptr};
 
-  QueueFamily indices = QueueFamily().bind(surface).find(physicalDevice->get());
+  QueueFamily indices =
+      QueueFamily().bind(surface).find(device->getPhysicalDevice());
   uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(),
                                    indices.presentFamily.value()};
 

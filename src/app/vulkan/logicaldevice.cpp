@@ -1,15 +1,18 @@
 #include "app/vulkan/physicaldevice.hpp"
+#include "lib/macros.hpp"
 #include <app/vulkan/instance.hpp>
 #include <app/vulkan/logicaldevice.hpp>
 #include <app/vulkan/queuefamily.hpp>
 
-LogicalDevice &LogicalDevice::bind(PhysicalDevice &physicalDevice) {
-  this->physicalDevice = &physicalDevice;
-  this->queues.bind(physicalDevice.getSurface()).find(physicalDevice.get());
+LogicalDevice &LogicalDevice::bind(Surface &surface) {
+  this->surface = &surface;
   pass;
 }
 
 LogicalDevice &LogicalDevice::build() {
+  check();
+  physicalDevice.bind(surface);
+  queues.bind(surface).find(physicalDevice.get());
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
   std::set<uint32_t> uniqueQueueFamilies = queues.getIndeces();
@@ -24,20 +27,20 @@ LogicalDevice &LogicalDevice::build() {
     queueCreateInfos.push_back(queueCreateInfo);
   }
 
-  auto deviceExtensions = physicalDevice->extensions();
+  auto deviceExtensions = physicalDevice.extensions();
 
   VkDeviceCreateInfo createInfo{
       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
       .pQueueCreateInfos = queueCreateInfos.data(),
       .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
-      .pEnabledFeatures = &physicalDevice->features(),
+      .pEnabledFeatures = &physicalDevice.features(),
       .enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size()),
       .ppEnabledExtensionNames = deviceExtensions.data()};
 
   // physicalDevice.getSurface().getInstance().legacyPopulateDeviceSpecific(
   // createInfo);
 
-  if (vkCreateDevice(physicalDevice->get(), &createInfo, nullptr, &device) !=
+  if (vkCreateDevice(physicalDevice.get(), &createInfo, nullptr, &device) !=
       VK_SUCCESS) {
     e_runtime("Failed to create logical device");
   }
@@ -57,4 +60,9 @@ LogicalDevice &LogicalDevice::build() {
 void LogicalDevice::destroy() {
   vkDestroyDevice(device, nullptr);
   logDebug("Logical device: destroyed");
+}
+
+void LogicalDevice::check() {
+  if (!surface)
+    runtime_dep(LogicalDevice, Surface);
 }

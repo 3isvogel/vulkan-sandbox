@@ -1,4 +1,5 @@
 #pragma once
+#include "app/vulkan/additional_types.hpp"
 #include <app/vulkan/physicaldevice.hpp>
 #include <app/vulkan/queuefamily.hpp>
 #include <app/vulkan/surface.hpp>
@@ -8,11 +9,15 @@ class LogicalDevice {
 
 public:
   void destroy();
-  LogicalDevice &bind(PhysicalDevice &physicalDevice);
+  LogicalDevice &bind(Surface &surface);
   LogicalDevice &build();
   inline const VkDevice get() { return device; }
-  inline PhysicalDevice *getPhysicalDevice() { return physicalDevice; }
+  inline Surface *getSurface() { return surface; }
   inline QueueFamily *getQueue() { return &queues; }
+  inline VkPhysicalDevice getPhysicalDevice() { return physicalDevice.get(); }
+  inline SwapChainSupportDetails getSupportDetails() {
+    return physicalDevice.getSupportDetails();
+  }
 
   inline void waitIdle() { vkDeviceWaitIdle(device); }
 
@@ -21,6 +26,7 @@ private:
 
 private:
   VkDevice device;
-  PhysicalDevice *physicalDevice = nullptr;
+  PhysicalDevice physicalDevice;
+  Surface *surface = nullptr;
   QueueFamily queues;
 };
