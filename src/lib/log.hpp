@@ -19,12 +19,6 @@ log_level_t logGetLevel();
 void logPrint(log_level_t log_level, const char *file_name, int line,
               const char *format, ...);
 
-// apparently doing so is necessary to correctly connect strings
-#define STR2(x) #x
-#define STR(x) STR2(x)
-#define CON2(a, b) (a##b)
-#define CON(a, b) CON(a, b)
-
 // modifier codes
 #define DEFAULT_CODE STR(0)
 #define BOLD_CODE STR(1)

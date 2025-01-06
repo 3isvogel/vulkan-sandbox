@@ -21,9 +21,23 @@ void logPrint(log_level_t log_level, const char *file_name, int line,
     return;
 #endif // BUILD_RELEASE
   // print header
-  fprintf(stderr, "%s%-5s" RESET SET_E(LIGHT_CODE) " %28s:%-4d " RESET,
-          log_level_color[log_level], log_level_flag[log_level], file_name,
-          line);
+  fprintf(stderr,
+#ifndef HIDE_LOG_LEVEL
+          "%s%-5s " RESET
+#endif
+#ifndef HIDE_LOG_TRACE
+              SET_E(LIGHT_CODE) " %28s:%-4d " RESET
+#endif
+                                ""
+#ifndef HIDE_LOG_LEVEL
+          ,
+          log_level_color[log_level], log_level_flag[log_level]
+#endif
+#ifndef HIDE_LOG_TRACE
+          ,
+          file_name, line
+#endif
+  );
   va_list arg;
   va_start(arg, format);
   vfprintf(stderr, format, arg);

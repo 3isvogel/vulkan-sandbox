@@ -6,6 +6,8 @@ int main() {
   EngineApp app;
 
   Status status = app.run();
+
+  app.cleanup();
   if (status != Status::OK) {
     logError("Error status: %s", statuses[status]);
     return EXIT_FAILURE;

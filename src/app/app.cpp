@@ -18,7 +18,6 @@ Status EngineApp::run() {
   YEET(initWindow());
   YEET(initVulkan());
   YEET(mainLoop());
-  cleanup();
   return OK;
 }
 
@@ -111,10 +110,10 @@ void EngineApp::bindQueueHandler() {
   indices = findQueueFamilies(physicalDevice, surface);
 
   // initialize queue handlers
-#define x(n)                                                                   \
-  vkGetDeviceQueue(device, indices.n##Family, 0, &n##Queue);                   \
-  logDebug("Queue family binding %p -> %i (%s)", n##Queue, indices.n##Family,  \
-           #n);
+#define x(f)                                                                   \
+  vkGetDeviceQueue(device, CON(indices.f, Family), 0, &CON(f, Queue));         \
+  logDebug("Queue family binding %p -> %i (%s)", CON(f, Queue),                \
+           CON(indices.f, Family), STR(f));
   QUEUE_HANDLER_LIST
 #undef x
 }

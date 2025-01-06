@@ -7,6 +7,8 @@ class EngineApp {
 public:
   // main application loop
   Status run();
+  // explicitly call cleanup, regardless of status code
+  void cleanup();
 
 private:
   EngineConf conf;
@@ -29,7 +31,7 @@ private:
   std::vector<VkImage> swapChainImages;
   std::vector<VkImageView> swapChainIMageViews;
 
-#define x(n) VkQueue n##Queue = VK_NULL_HANDLE;
+#define x(f) VkQueue CON(f, Queue) = VK_NULL_HANDLE;
   QUEUE_HANDLER_LIST
 #undef x
   // surface, to handle window drawing
@@ -42,7 +44,6 @@ private:
   Status initWindow();
   Status initVulkan();
   Status mainLoop();
-  void cleanup();
 
   void bindQueueHandler();
 };

@@ -1,4 +1,5 @@
 #pragma once
+#include "log.hpp"
 
 #define STATUS_LIST y(OK) y(TODO) y(FAIL)
 #define FAIL_LIST                                                              \
@@ -7,7 +8,7 @@
           x(SHADER_MODULE)
 
 #define y(name) name,
-#define x(name) name##_FAIL,
+#define x(name) CON(name, _FAIL),
 typedef enum { STATUS_LIST FAIL_LIST STATUS_MAX } Status;
 #undef y
 #undef x
@@ -22,7 +23,6 @@ typedef enum { STATUS_LIST FAIL_LIST STATUS_MAX } Status;
 
 extern char *statuses[STATUS_MAX];
 
-#include "log.hpp"
 #ifndef BUILD_RELEASE
 #define __TODO_RET_VAL Status::TODO
 #else
